@@ -8,7 +8,9 @@ A collection of small browser games. Each game lives in its own folder with its 
 | 🔍 Spot the Difference | [`spot-the-difference/`](spot-the-difference/) | Kids' game: tap the 10 differences between two pictures. New random scene every time, with people and speech bubbles. Needs internet for the font. |
 
 ## Adding a game
-Make a new folder with an `index.html`, use relative paths, and give its saved data (localStorage) its own prefix so games don't overwrite each other. Spider Takedown uses `st_`.
+Make a new folder with an `index.html`, add a card for it on the front page (`index.html` in the main folder, there's a comment showing how), use relative paths, and give its saved data (localStorage) its own prefix so games don't overwrite each other. Spider Takedown uses `st_`.
 
 ## Playing on GitHub Pages
+The front page (`index.html`) is the colourful game picker for kids; this README is just notes for grown-ups.
+
 Turn on Pages for the `main` branch (Settings → Pages), then open `https://robdoyle2.github.io/games/spider-takedown/`.
