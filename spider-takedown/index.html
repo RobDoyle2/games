@@ -49,6 +49,8 @@ button{font-family:inherit;cursor:pointer}
 .tag{margin-top:6px;font-weight:600;font-size:clamp(12px,2.4vmin,20px);text-shadow:0 2px 6px #000;text-align:center}
 @keyframes bob{50%{transform:translateY(-6px) rotate(-1deg)}}
 .panel{background:rgba(25,12,50,.82);border:2px solid rgba(255,255,255,.35);border-radius:22px;padding:12px 16px;width:min(94vw,640px);max-height:58vh;overflow:auto;text-align:center;touch-action:pan-y;backdrop-filter:blur(4px)}
+.choose{font-weight:700;font-size:clamp(16px,3.2vmin,24px);color:#fff;text-align:center;letter-spacing:.5px;margin-bottom:6px;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.credit{font-size:clamp(22px,4.2vmin,28px);font-weight:600;line-height:1.15;color:#d8e6c8;text-align:center;opacity:.9;margin:-2px 0 4px}
 #slots{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}
 .slot{flex:1 1 105px;min-width:96px;max-width:122px;border-radius:14px;padding:7px 4px;font-size:12px;font-weight:600;background:rgba(255,255,255,.08);border:2px dashed rgba(255,255,255,.3);line-height:1.2}
 .slot.on{border-style:solid;background:rgba(255,255,255,.16)}
@@ -59,9 +61,19 @@ button{font-family:inherit;cursor:pointer}
 #startBtn:active{transform:translateY(3px);box-shadow:0 2px 0 #b86a00}
 details{margin-top:6px;text-align:left;font-size:13px}
 summary{cursor:pointer;font-weight:700;text-align:center}
-.ctl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin-top:6px}
-.ctl i{font-style:normal;font-weight:700;color:#ffd23f}
-.goal{font-size:13px;margin-top:6px;opacity:.95}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:8px}
+.cs{background:rgba(255,255,255,.07);border-radius:12px;padding:8px 10px}
+.cs h4{margin:0 0 5px;font-size:14px;color:#ffd23f}
+.rows,.steps,.tips{list-style:none;margin:0;padding:0}
+.rows li{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:13px}
+.rows li b{font-weight:600;flex:1}
+.rows kbd{font-family:inherit;font-size:12px;background:rgba(255,255,255,.16);border-radius:7px;padding:1px 7px;white-space:nowrap}
+.ic{display:inline-block;width:24px;text-align:center;flex:none}
+.how{text-align:left;margin-top:8px}
+.how h3{margin:8px 0 4px;font-size:15px;color:#ffd23f}
+.steps{counter-reset:s}
+.steps li,.tips li{display:flex;align-items:flex-start;gap:6px;padding:3px 0;font-size:14px;line-height:1.3}
+.steps li .ic{font-size:18px}
 /* ---------- pause / end ---------- */
 .overlay{position:fixed;inset:0;z-index:15;display:none;align-items:center;justify-content:center;background:rgba(10,5,30,.72);flex-direction:column;gap:12px;text-align:center;padding:16px}
 .overlay h1{margin:0;font-size:clamp(30px,8vmin,64px);text-shadow:0 4px 0 #5b2a86}
@@ -156,26 +168,43 @@ button.sec.on{background:rgba(120,220,140,.45)}
     <div class="tag">You're a teeny-tiny spider. The garden is HUGE. Take it all over! 🕷️</div>
   </div>
   <div class="panel">
+    <div class="choose">Choose player</div>
     <div id="slots"></div>
     <div class="join" id="joinhint">👯 Up to <b>5 players</b> on one screen! Plug in controllers and press <b>A</b> to join. Playing alone? Just hit PLAY.</div>
     <button id="startBtn">PLAY</button>
+    <div class="credit">Designed by<br>Louis Doyle and Leo Cooper</div>
     <div class="btnrow"><button id="shopBtn" class="sec">🛠️ Spider Workshop</button><button id="twoBtn" class="sec" style="display:none">👫 2 players on this phone</button><button id="netBtn" class="sec" style="display:none">🌐 Play online</button></div>
     <div id="netBox" style="display:none"><div class="btnrow"><input id="roomIn" maxlength="12" placeholder="room code" autocomplete="off" spellcheck="false" autocapitalize="off"><button id="roomGo" class="sec">Join</button><button id="roomNew" class="sec">New room</button></div><div id="netStat">Team up with a friend on their own phone or computer! One of you taps <b>New room</b> and shares the code.</div></div>
-    <div class="goal">🎯 Web the glowing spots to claim the garden → beat the giant <b>Fire Ant</b> → take over the <b>house</b>!<br>⬆️ Every spot you claim <b>upgrades your spider</b>. 🌻 Walk into a sunflower stem to climb it, or jump twice to peek over the grass. 💎 Collect items to unlock hats &amp; weapons!</div>
+    <div class="how">
+      <h3>🎯 How to win</h3>
+      <ol class="steps">
+        <li><span class="ic">🕸️</span><span><b>Shoot webs</b> at the glowing spots to claim the garden.</span></li>
+        <li><span class="ic">🐜</span><span><b>Beat the giant Fire Ant.</b></span></li>
+        <li><span class="ic">🏠</span><span><b>Take over the house.</b> Dodge the stomping 👟 and free the caged mouse 🔓.</span></li>
+        <li><span class="ic">🏚️</span><span><b>Clear the attic:</b> clean it up, beat the 🦇 bat, then face the Brick Buddies!</span></li>
+      </ol>
+      <h3>💡 Handy tips</h3>
+      <ul class="tips">
+        <li><span class="ic">⬆️</span><span>Every spot you claim <b>upgrades your spider</b>.</span></li>
+        <li><span class="ic">🌻</span><span>Walk into a sunflower stem to climb it. Jump twice to peek over the grass.</span></li>
+        <li><span class="ic">💎</span><span>Collect items to unlock <b>hats &amp; weapons</b>.</span></li>
+        <li><span class="ic">🐭</span><span>Find the little mouse in the garden: he joins your team and you can ride him!</span></li>
+      </ul>
+    </div>
     <details>
       <summary>🎮 Controls</summary>
       <div class="ctl">
-        <i>Controller</i><span>Left stick move · Right stick look · <b>A</b> jump (tap twice = double jump) · <b>RT/RB</b> shoot web · <b>LT/L3</b> run · <b>X</b> web-zip · <b>B</b> pounce · <b>Y</b> slam (in air) / dance · hold <b>A</b> in the air to glide (late upgrade)</span>
-        <i>Keyboard</i><span>WASD move · Mouse (or arrow keys) look · Space jump · Click/F web · Shift run · Right-click/E zip · Q pounce · G slam/dance · P pause · walk into a sunflower stem (W) to climb</span>
-        <i>Keyboard 2</i><span>Arrow keys move · J/L turn · I/K look up/down · Enter jump · . (period) web · Right Shift run · ; zip · , pounce · ' slam</span>
-        <i>Touch</i><span>Left thumb: stick · Right thumb: drag to look · Buttons: WEB, JUMP, ZIP, POUNCE, SLAM, RUN</span>
+        <div class="cs"><h4>⌨️ Keyboard</h4><ul class="rows"><li><span class="ic">🏃</span><b>Move</b><kbd>W A S D</kbd></li><li><span class="ic">👀</span><b>Look</b><kbd>Mouse</kbd></li><li><span class="ic">⬆️</span><b>Jump</b><kbd>Space (tap twice = double)</kbd></li><li><span class="ic">🕸️</span><b>Shoot web</b><kbd>Click / F</kbd></li><li><span class="ic">💨</span><b>Run</b><kbd>Shift</kbd></li><li><span class="ic">🪢</span><b>Web-zip</b><kbd>Right-click / E</kbd></li><li><span class="ic">🐾</span><b>Pounce</b><kbd>Q</kbd></li><li><span class="ic">💥</span><b>Slam / dance</b><kbd>G</kbd></li><li><span class="ic">🐭</span><b>Talk to / ride mouse</b><kbd>R</kbd></li><li><span class="ic">⏸️</span><b>Pause</b><kbd>P</kbd></li></ul></div>
+        <div class="cs"><h4>🎮 Controller</h4><ul class="rows"><li><span class="ic">🏃</span><b>Move</b><kbd>Left stick</kbd></li><li><span class="ic">👀</span><b>Look</b><kbd>Right stick</kbd></li><li><span class="ic">⬆️</span><b>Jump</b><kbd>A (tap twice = double)</kbd></li><li><span class="ic">🕸️</span><b>Shoot web</b><kbd>RT / RB</kbd></li><li><span class="ic">💨</span><b>Run</b><kbd>LT / L3</kbd></li><li><span class="ic">🪢</span><b>Web-zip</b><kbd>X</kbd></li><li><span class="ic">🐾</span><b>Pounce</b><kbd>B</kbd></li><li><span class="ic">💥</span><b>Slam / dance</b><kbd>Y</kbd></li><li><span class="ic">🐭</span><b>Talk to / ride mouse</b><kbd>D-pad ↑</kbd></li></ul></div>
+        <div class="cs"><h4>⌨️ Keyboard 2 (second player)</h4><ul class="rows"><li><span class="ic">🏃</span><b>Move</b><kbd>Arrow keys</kbd></li><li><span class="ic">👀</span><b>Look</b><kbd>J L (turn) · I K (up/down)</kbd></li><li><span class="ic">⬆️</span><b>Jump</b><kbd>Enter</kbd></li><li><span class="ic">🕸️</span><b>Shoot web</b><kbd>. (period)</kbd></li><li><span class="ic">💨</span><b>Run</b><kbd>Right Shift</kbd></li><li><span class="ic">🪢</span><b>Web-zip</b><kbd>; (semicolon)</kbd></li><li><span class="ic">🐾</span><b>Pounce</b><kbd>, (comma)</kbd></li><li><span class="ic">💥</span><b>Slam</b><kbd>' (quote)</kbd></li><li><span class="ic">🐭</span><b>Talk to / ride mouse</b><kbd>/</kbd></li></ul></div>
+        <div class="cs"><h4>📱 Touch</h4><ul class="rows"><li><span class="ic">🏃</span><b>Move</b><kbd>Left thumb stick</kbd></li><li><span class="ic">👀</span><b>Look</b><kbd>Drag with right thumb</kbd></li><li><span class="ic">🕸️</span><b>Buttons</b><kbd>WEB · JUMP · ZIP · POUNCE · SLAM · RUN</kbd></li><li><span class="ic">🐭</span><b>Talk to / ride mouse</b><kbd>Tap the 🐭 button</kbd></li></ul></div>
       </div>
     </details>
   </div>
 </div>
 
 <div id="pause" class="overlay"><h1>Paused</h1><button id="resumeBtn">Resume</button><button id="quitBtn">Quit</button></div>
-<div id="end" class="overlay"><h1>🏆 You took over the house! 🏆</h1><div id="endsub" style="font-size:18px"></div><div id="results"></div><button id="againBtn">Play again</button></div>
+<div id="end" class="overlay"><h1>🏆 Garden, house and attic: all yours! 🏆</h1><div id="endsub" style="font-size:18px"></div><div id="results"></div><button id="againBtn">Play again</button></div>
 
 <div id="touch"></div>
 <div class="tb" id="tPause">II</div>
@@ -896,6 +925,7 @@ function loadLevel(L){
   renderer.setClearColor(L.fogC);
   sky.visible=clouds.visible=L.sky;
   lights.amb.intensity=L.sky?.6:.8;lights.hemi.intensity=L.sky?.55:.6;lights.sun.intensity=L.sky?.9:.5;lights.lamp.intensity=0;
+  if(L.dark&&!L.lit)atticLights(false);
   if(grass)grass.visible=(L.name==='garden');
 }
 function initWorld(){
@@ -1260,6 +1290,8 @@ function updatePlayer(p,dt){
       const cx=p.x,cy=p.y+.6,cz=p.z;
       if(bossLive()){for(const s of bossSpheres()){if(Math.hypot(cx-s.x,cy-s.y,cz-s.z)<s.r+1.3){p.pounceHit=true;damageBoss(12*dmgMul(),p);const f=fwd(p.yaw);p.vx=-f.x*10;p.vz=-f.z*10;p.vy=8;p.pounceT=0;burst(cx,cy,cz,0xffffff,14,7,3,.6);rumble(p,.5,150);break;}}}
       for(const b of babies){if(Math.hypot(cx-b.x,cy-(b.y+.5),cz-b.z)<1.9){killBaby(b,p);p.pounceHit=true;}}
+      if(!p.pounceHit&&bat&&game.phase==='bat'){for(const sp of batSpheres()){if(Math.hypot(cx-sp.x,cy-sp.y,cz-sp.z)<sp.r+1.3){p.pounceHit=true;damageBat(12*dmgMul(),p);p.vy=8;p.pounceT=0;burst(cx,cy,cz,0xc9b0ff,14,7,3,.6);break;}}}
+      if(!p.pounceHit){for(const f of figs){if(f.ally||f.state!=='chase')continue;if(Math.hypot(cx-f.x,cy-(f.y+2.5),cz-f.z)<3.4){p.pounceHit=true;damageFig(f,12*dmgMul(),p);const ff=fwd(p.yaw);p.vx=-ff.x*8;p.vz=-ff.z*8;p.vy=7;p.pounceT=0;break;}}}
       if(!p.pounceHit&&pip&&pip.state==='hostile'){for(const sp of pipSpheres()){if(Math.hypot(cx-sp.x,cy-sp.y,cz-sp.z)<sp.r+1.3){p.pounceHit=true;damagePip(12*dmgMul(),p);const f=fwd(p.yaw);p.vx=-f.x*10;p.vz=-f.z*10;p.vy=8;p.pounceT=0;burst(cx,cy,cz,0xffffff,14,7,3,.6);rumble(p,.5,150);break;}}}
     }
   }
@@ -1331,6 +1363,7 @@ function shockwave(p){
   if(bossLive()){for(const s of bossSpheres()){if(Math.hypot(p.x-s.x,p.z-s.z)<s.r+5){damageBoss(8,p);break;}}}
   for(const b of babies.slice()){if(Math.hypot(p.x-b.x,p.z-b.z)<7)killBaby(b,p);}
   if(pip&&pip.state==='hostile'){for(const sp of pipSpheres()){if(Math.hypot(p.x-sp.x,p.z-sp.z)<sp.r+5){damagePip(8,p);break;}}}
+  for(const f of figs){if(f.state==='chase'&&Math.hypot(p.x-f.x,p.z-f.z)<7)damageFig(f,7,p);}
   for(const o of players){if(o!==p&&o.down>0&&Math.hypot(o.x-p.x,o.z-p.z)<4){o.down=.01;}}
 }
 
@@ -1355,7 +1388,8 @@ function allClaimed(){
   if(level.name==='garden'){
     game.phase='boss-wait';game.bossTimer=4;
     banner('The garden is ours! 🕸️','But the ground is rumbling…',3800);shake=1.2;
-  }else{startRampage();}
+  }else if(level.name==='attic'){atticAllClean();}
+  else{startRampage();}
 }
 
 function checkTier(){
@@ -1576,6 +1610,10 @@ function updateProjectiles(dt){
       if(dead)break;
       if(pip&&pip.state==='hostile'){for(const sp of pipSpheres()){if(Math.hypot(pos.x-sp.x,pos.y-sp.y,pos.z-sp.z)<sp.r+.3){damagePip(pr.dmg,owner);burst(pos.x,pos.y,pos.z,0xffffff,5,4,1,.4);dead=true;break;}}}
       if(dead)break;
+      if(bat&&(bat.state==='circle'||bat.state==='dive'||bat.state==='climb'||bat.state==='screech'||bat.state==='wake')){for(const sp of batSpheres()){if(Math.hypot(pos.x-sp.x,pos.y-sp.y,pos.z-sp.z)<sp.r+.3){damageBat(pr.dmg,owner);burst(pos.x,pos.y,pos.z,0xc9b0ff,5,4,1,.4);dead=true;break;}}}
+      if(dead)break;
+      for(const f of figs){if(f.ally||f.state==='dead'||f.state==='cheer'||f.state==='back')continue;const sp=figSphere(f);if(Math.hypot(pos.x-sp.x,pos.y-sp.y,pos.z-sp.z)<sp.r+.3){damageFig(f,pr.dmg,owner);burst(pos.x,pos.y,pos.z,0xffffff,5,4,1,.4);dead=true;break;}}
+      if(dead)break;
       {const cg=level.cage;if(cg&&!cg.open&&pos.distanceToSquared(cg.lock)<(cg.r+.3)*(cg.r+.3)){cageHit(owner,pr.claim);dead=true;}}
       if(dead)break;
       if(pos.y<.12||pointInCollider(pos)){splat(pos,pr.vel);dead=true;}
@@ -1626,6 +1664,7 @@ function buildHUDs(){
 }
 function promptFor(p){
   if(p.toastT>0)return p.toast;
+  {const pa=atticPrompt(p);if(pa)return pa;}
   {const pp2=petPrompt(p);if(pp2)return pp2;}
   if(p.climb)return '⬆ Push forward to climb · JUMP to leap off';
   if(level.stems&&level.stems.length&&p.y<2&&!p.zip){for(const st of level.stems){if(Math.hypot(st.x-p.x,st.z-p.z)<5)return '🌻 Walk into the stem to climb!';}}
@@ -1640,11 +1679,20 @@ function objectiveText(){
   if(game.phase==='boss')return '🔥 Defeat the Fire Ant!';
   if(game.phase==='door')return '🚪 Run to the glowing hole in the house!';
   if(game.phase==='house')return '🏠 Take over the house: '+done+'/'+tot+'  ·  ⬆️ Lv '+(game.tier+1)+(level.cage&&!level.cage.open?'  ·  🔒 Free Nibbles':'');
+  if(game.phase==='attic')return '🧹 Clean the attic — web the dusty things: '+done+'/'+tot;
+  if(game.phase==='attic-lights')return '💡 The lights are flickering…';
+  if(game.phase==='bat')return '🦇 Defeat the giant bat!';
+  if(game.phase==='chest')return '🧱 You found the Brick Buddies!';
+  if(game.phase==='betray')return '😠 Uh oh… they turned their backs';
+  if(game.phase==='brickfight')return '🧱 Beat the grumpy Brick Buddies: '+foes().length+' left';
+  if(game.phase==='attic-win'||game.phase==='attic-end')return '💛 You saved the house!';
   if(game.phase==='rampage')return pip&&pip.state==='hostile'?'😡 Calm Biscuit down — web him, pounce him!':'💥 Biscuit’s home…';
   return '';
 }
 function targetFor(p){
-  if(game.phase==='garden'||game.phase==='house'){let best=null,bd=1e9;for(const c of level.claims){if(c.done)continue;const d=(c.pos.x-p.x)**2+(c.pos.z-p.z)**2;if(d<bd){bd=d;best=c.pos;}}return best;}
+  if(game.phase==='bat'&&bat&&bat.state!=='hang')return {x:bat.x,z:bat.z};
+  if(game.phase==='brickfight'){let bf=null,bd3=1e9;for(const f of figs){if(f.ally||f.state==='dead')continue;const d=(f.x-p.x)**2+(f.z-p.z)**2;if(d<bd3){bd3=d;bf=f;}}return bf?{x:bf.x,z:bf.z}:null;}
+  if(game.phase==='garden'||game.phase==='house'||game.phase==='attic'){let best=null,bd=1e9;for(const c of level.claims){if(c.done)continue;const d=(c.pos.x-p.x)**2+(c.pos.z-p.z)**2;if(d<bd){bd=d;best=c.pos;}}return best;}
   if(game.phase==='boss'&&boss)return {x:boss.x,z:boss.z};
   if(game.phase==='door')return {x:0,z:-54};
   if(game.phase==='rampage'&&pip&&pip.state==='hostile')return {x:pip.x,z:pip.z};
@@ -1656,6 +1704,7 @@ function updateHUD(){
   if(!toastTO||true){if(o!==lastObj){lastObj=o;$('obj').textContent=o;}}
   if(boss){$('boss').querySelector('i').style.width=Math.max(0,boss.hp/boss.max*100)+'%';}
   else if(pip&&pip.state==='hostile'){$('boss').querySelector('i').style.width=Math.max(0,pip.hp/pip.max*100)+'%';}
+  else if(bat&&game.phase==='bat'){$('boss').querySelector('i').style.width=Math.max(0,bat.hp/bat.max*100)+'%';}
   players.forEach((p,i)=>{
     const h=huds[i];if(!h)return;
     let s='';for(let k=0;k<p.maxHp;k++)s+='<span'+(k<p.hp?' class="on"':'')+'>♥</span>';
@@ -1810,7 +1859,7 @@ function victory(){
     $('results').innerHTML=sorted.map((p,i)=>'<div class="res'+(i===0&&players.length>1?' mvp':'')+'"><b style="color:'+p.css+'">'+esc(p.name)+(i===0&&players.length>1?' 👑':'')+'</b>⭐ '+p.score+'<br>🕸️ '+p.claims+' claimed<br>💥 '+Math.round(p.dmg)+' damage<br>🐜 '+p.kills+' ants<br>🎒 '+p.gems+' items (+'+p.crumbs+' 💎)</div>').join('');
     $('end').style.display='flex';$('touch').style.display='none';
   },2200);
-  banner('YOU TOOK OVER THE HOUSE! 🏆','',2400);
+  banner('YOU SAVED THE HOUSE! 🏆','Garden, house and attic: all yours!',2400);
 }
 $('startBtn').addEventListener('click',startGame);
 /* ----- workshop ----- */
@@ -2256,7 +2305,7 @@ function pipBeaten(p){
   for(const q of players){q.score+=300;q.hp=q.maxHp;if(q.down>0)respawn(q);}
   banner('Biscuit calmed down 💙','“Sniff… I’m sorry. Thank you for not squishing me.”',3800);
   burst(e.x,e.y+2,e.z,0x4aa8ff,30,8,5,1.2);burst(e.x,e.y+2,e.z,0xffffff,20,6,4,1);
-  setTimeout(function(){if(game.phase==='rampage')victory();},3600);
+  setTimeout(function(){if(game.phase==='rampage')startAtticTransition();},3600);
 }
 
 /* ----- cage with Biscuit’s wild brother ----- */
@@ -2499,6 +2548,7 @@ function updatePets(dt){
               if(nb&&!net.follower){tx=nb.x;tz=nb.z;gap=1.2;if(bd<2.4*2.4&&e.cd<=0){killBaby(nb,null);e.cd=1.2;sfx.hit();burst(nb.x,.8,nb.z,0xffffff,8,5,2,.5);}}
             }
           }
+          if(game.phase==='brickfight'){let nf=null,bd2=18*18;for(const f of figs){if(f.ally||f.state!=='chase')continue;const dd=(f.x-e.x)**2+(f.z-e.z)**2;if(dd<bd2){bd2=dd;nf=f;}}if(nf){tx=nf.x;tz=nf.z;gap=2;if(bd2<3.4*3.4&&e.cd<=0){damageFig(nf,5,null);e.cd=.9;burst(nf.x,2,nf.z,0xffffff,5,3,1,.4);}}}
           const d=stepToward(e,dt,tx,tz,gap,e.kind==='bro'?21:19);
           const dl=Math.hypot(lead.x-e.x,lead.z-e.z);
           if(dl>gap+2&&e.speed<2)e.stuck+=dt;else e.stuck=Math.max(0,e.stuck-dt);
@@ -2601,6 +2651,449 @@ function petPrompt(p){
   return '';
 }
 
+/* ================= THE ATTIC: dust, a broken doll, a bat, Brick Buddies ================= */
+let atticL=null,bat=null,doll=null;const figs=[];let atticT=0;
+T.tag=tex(128,64,(g,w,h)=>{g.fillStyle='#f2e6c4';g.fillRect(0,0,w,h);g.strokeStyle='#7a5a3a';g.lineWidth=3;g.strokeRect(3,3,w-6,h-6);g.fillStyle='#4a2f1a';g.font='bold 15px sans-serif';g.textAlign='center';g.fillText('The designer’s',w/2,26);g.fillText('favourite toy',w/2,46);});
+T.crack=tex(64,64,(g)=>{g.strokeStyle='#3a2410';g.lineWidth=3;g.beginPath();g.moveTo(8,4);g.lineTo(30,26);g.lineTo(20,40);g.lineTo(48,60);g.stroke();});
+
+function atticLights(on){
+  const sc=scene.fog;
+  if(on){lights.amb.intensity=.95;lights.hemi.intensity=.75;lights.sun.intensity=.35;if(sc){sc.near=30;sc.far=170;if(sc.color&&sc.color.set)sc.color.set(0x3a2f3f);}renderer.setClearColor(0x3a2f3f);}
+  else{lights.amb.intensity=.34;lights.hemi.intensity=.3;lights.sun.intensity=.08;if(sc){sc.near=8;sc.far=62;if(sc.color&&sc.color.set)sc.color.set(0x120d18);}renderer.setClearColor(0x120d18);}
+}
+
+/* ----- the broken doll: wooden, mismatched button eyes, one arm snapped off ----- */
+function makeDoll(){
+  const g=new THREE.Group();
+  const wood=lam(0xc99a5b),dark=lam(0x7a5530),vest=lam(0x2e8f8a),yarn=lam(0x8a4a22);
+  M(GEO.box,wood,0,.55,0,g).scale.set(1.7,1.0,2.4);
+  M(GEO.box,vest,0,.62,.1,g).scale.set(1.85,.9,1.7);
+  M(GEO.box,bas(0xf2e6c4),0,.74,-.7,g).scale.set(.5,.12,.4);
+  const head=new THREE.Group();head.position.set(0,.9,-2.1);head.rotation.z=.35;g.add(head);
+  S(M(GEO.sph,wood,0,0,0,head),.95);
+  S(M(GEO.sph,bas(0xffffff),-.4,.25,-.8,head),.26);S(M(GEO.sph,bas(0x2a6fd0),-.4,.25,-1.03,head),.13);
+  const x1=M(GEO.box,bas(0x2a1608),.4,.28,-.88,head);x1.scale.set(.5,.08,.05);x1.rotation.z=.7;
+  const x2=M(GEO.box,bas(0x2a1608),.4,.28,-.88,head);x2.scale.set(.5,.08,.05);x2.rotation.z=-.7;
+  const sm=M(GEO.box,bas(0x2a1608),0,-.35,-.9,head);sm.scale.set(.7,.07,.05);sm.rotation.z=.2;
+  for(let k=0;k<4;k++){const c=M(new THREE.ConeGeometry(.16,.55,5),yarn,(k-1.5)*.32,.85,.0,head);c.rotation.z=(k-1.5)*.4;}
+  const ck=M(new THREE.PlaneGeometry(.8,.8),new THREE.MeshBasicMaterial({map:T.crack,transparent:true,depthWrite:false}),.55,-.05,-.85,head);ck.rotation.y=.35;
+  const armR=M(GEO.box,wood,1.3,.6,-.9,g);armR.scale.set(.5,.5,1.7);armR.rotation.y=.5;
+  {const pg=M(GEO.box,dark,1.3,.6,.0,g);pg.scale.set(.18,.18,.5);pg.rotation.y=.5;}
+  const armL=M(GEO.box,wood,-3.4,.28,1.3,g);armL.scale.set(.5,.5,1.7);armL.rotation.y=-.7;
+  M(GEO.box,dark,-2.7,.28,.7,g).scale.set(.2,.2,.5);
+  M(GEO.box,wood,-.55,.35,2.5,g).scale.set(.6,.6,2.2);
+  M(GEO.box,wood,.7,.35,2.2,g).scale.set(.6,.6,1.3);
+  const low=M(GEO.box,wood,2.3,.3,3.2,g);low.scale.set(.6,.6,1.5);low.rotation.y=-.9;
+  {const cr=M(GEO.box,bas(0x3a2410),.1,.7,.3,g);cr.scale.set(.06,.06,1.6);cr.rotation.y=.3;}
+  const tag=M(new THREE.PlaneGeometry(1.7,.85),new THREE.MeshBasicMaterial({map:T.tag,side:THREE.DoubleSide}),1.2,.9,-1.8,g);tag.rotation.x=-Math.PI/2+.3;tag.rotation.z=.4;
+  return g;
+}
+
+/* ----- level ----- */
+function buildAttic(){
+  const L=newLevel('attic',{minX:-43,maxX:43,minZ:-43,maxZ:43});
+  L.pool=['gem','button','coin','marble','crayon','dice'];L.spawn={x:0,z:37,yaw:0};L.fogC=0x120d18;L.fogNear=8;L.fogFar=62;L.sky=false;L.dark=true;L.lit=false;
+  const fl=new THREE.Mesh(new THREE.PlaneGeometry(100,100),new THREE.MeshLambertMaterial({map:repTex(T.wood,9,9),color:0x9a8c7c}));fl.rotation.x=-Math.PI/2;L.root.add(fl);
+  const ce=new THREE.Mesh(new THREE.PlaneGeometry(100,100),new THREE.MeshLambertMaterial({color:0x4a3a30}));ce.rotation.x=Math.PI/2;ce.position.y=58;L.root.add(ce);
+  [[0,-44,0],[0,44,0],[-44,0,Math.PI/2],[44,0,Math.PI/2]].forEach(w=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(100,58),new THREE.MeshLambertMaterial({map:repTex(T.wood,10,2.5),color:0x7a6450,side:THREE.DoubleSide}));m.position.set(w[0],29,w[1]);m.rotation.y=w[2];L.root.add(m);});
+  addBox(L,-50,0,-50,50,60,-43,0,{noMesh:true,noMantle:true});addBox(L,-50,0,43,50,60,50,0,{noMesh:true,noMantle:true});
+  addBox(L,-50,0,-50,-43,60,50,0,{noMesh:true,noMantle:true});addBox(L,43,0,-50,50,60,50,0,{noMesh:true,noMantle:true});
+  for(let z=-40;z<=40;z+=10)addBox(L,-44,50,z-.8,44,53.5,z+.8,0x3a2a20,{collide:false});
+  addBox(L,-1,53.5,-44,1,57,44,0x33241b,{collide:false});
+  /* round window with a moonbeam */
+  const win=M(new THREE.CircleGeometry(7,22),bas(0x9fb8e8,{fog:false}),0,34,-43.4,L.root);
+  const beam=M(new THREE.CylinderGeometry(3,10,46,14,1,true),new THREE.MeshBasicMaterial({color:0x7088cc,transparent:true,opacity:.1,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}),0,18,-30,L.root);beam.rotation.x=.55;
+  /* hanging bulb (comes on after the clean-up) */
+  const bulbG=new THREE.Group();bulbG.position.set(0,50,6);L.root.add(bulbG);
+  M(cyl(.12,.12,8,5),lam(0x222222),0,4,0,bulbG);
+  L.bulb=S(M(GEO.sph,new THREE.MeshBasicMaterial({color:0x4a4033}),0,-.5,0,bulbG),1.1);
+  L.glow=new THREE.Sprite(new THREE.SpriteMaterial({map:T.dot,color:0xfff0b0,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));L.glow.scale.setScalar(26);L.glow.position.set(0,-.5,0);L.glow.visible=false;bulbG.add(L.glow);
+  /* wardrobe (climb it!) */
+  addBox(L,-43,0,-10,-33,42,8,0x4a3020);
+  addBox(L,-33.4,3,-9,-33,40,-.3,0x5a3c28,{collide:false});addBox(L,-33.4,3,.3,-33,40,7,0x5a3c28,{collide:false});
+  S(M(GEO.sph,bas(0xd8b050),-32.8,22,-1.4,L.root),.45);S(M(GEO.sph,bas(0xd8b050),-32.8,22,1.4,L.root),.45);
+  /* dusty trunk */
+  addBox(L,-30,0,-34,-12,10,-24,0x6b4a2a);addBox(L,-30.3,10,-34.3,-11.7,12,-23.7,0x7a5632);
+  addBox(L,-26,0,-34.2,-24.4,12.2,-23.8,0x3a2a20,{collide:false});addBox(L,-18,0,-34.2,-16.4,12.2,-23.8,0x3a2a20,{collide:false});
+  makeClaim(L,'Dusty trunk',-21,12.2,-29,4.7,4);
+  /* rocking horse */
+  addBox(L,14,0,-34,26,13,-26,0x9a6a3a);
+  addBox(L,12.6,0,-35,13.6,1.2,-25,0x6a4524,{collide:false});addBox(L,26.4,0,-35,27.4,1.2,-25,0x6a4524,{collide:false});
+  S(M(GEO.sph,lam(0xb98a52),20,12,-24.5,L.root),2.6,2.2,2.6);
+  S(M(GEO.sph,bas(0x111111),19,13,-22.4,L.root),.35);S(M(GEO.sph,bas(0x111111),21,13,-22.4,L.root),.35);
+  makeClaim(L,'Rocking horse',20,15.2,-30,4.7,4);
+  /* sheet-covered chair (a sheet ghost) */
+  addCyl(L,28,12,5.2,0,15);
+  M(cyl(2.2,5.2,15,14),lam(0xe8e4f0),28,7.5,12,L.root);S(M(GEO.sph,lam(0xe8e4f0),28,15.2,12,L.root),2.6,2.0,2.6);
+  S(M(GEO.sph,bas(0x181820),26.9,15.4,9.6,L.root),.5,.8,.3);S(M(GEO.sph,bas(0x181820),29.1,15.4,9.6,L.root),.5,.8,.3);
+  makeClaim(L,'Sheet ghost',28,17.4,12,4.6,4);
+  /* box tower */
+  addBox(L,-12,0,18,-2,9,28,0xb8864a);addBox(L,-11,9,19,-2.4,17,27,0xc4965a);addBox(L,-10,17,20,-3.4,23,26,0xb8864a);
+  addBox(L,-12.2,4,23,-1.8,5,23.4,0x8a6636,{collide:false});
+  makeClaim(L,'Box tower',-6.7,25.2,23,4.7,4);
+  /* cobweb corner */
+  const web=new THREE.Mesh(new THREE.PlaneGeometry(24,24),new THREE.MeshBasicMaterial({map:T.web,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false}));web.position.set(-38.5,38,-38.5);web.rotation.y=Math.PI/4;L.root.add(web);
+  makeClaim(L,'Cobweb corner',-38.4,38,-38.4,5.2);
+  /* crate with the broken doll */
+  addBox(L,-4,0,-40,8,5,-31,0x7a5a3a);
+  doll=makeDoll();doll.position.set(2.2,5,-35.5);doll.rotation.y=.4;doll.scale.setScalar(1.2);L.root.add(doll);L.dollPos=V3(2.2,5,-35.5);
+  /* mattress stack + low crates for cover */
+  addBox(L,30,0,-22,43,6,-8,0x8a90b8);addBox(L,31,6,-21,42,10,-9,0x9aa0c8);
+  addBox(L,-26,0,10,-18,6,18,0x7a5a3a);addBox(L,22,0,-6,30,5,0,0x8a6a44);
+  /* the toy chest (it stays shut until the bat is gone) */
+  addBox(L,8,0,6,22,8,14,0xb04a3a);addBox(L,8.4,3,5.8,21.6,4.2,14.2,0xe8c04a,{collide:false});
+  const lid=new THREE.Group();lid.position.set(15,8,6.2);L.root.add(lid);
+  M(GEO.box,lam(0xc05a48),0,.6,3.9,lid).scale.set(14.4,1.2,8.2);S(M(GEO.sph,bas(0xe8c04a),0,1.5,7.2,lid),.8);
+  L.chest={x:15,z:10,lid:lid,open:false,openT:0};
+  /* the bat sleeps under a rafter */
+  L.batHome=V3(10,48.5,-10);
+  /* gems on high places */
+  [[-21,11.3,-26],[20,14.3,-27],[-38,43.3,0],[-38,43.3,-6],[-6.7,24.3,23],[36,10.3,-14],[-22,6.3,14],[26,5.3,-3],[-38,43.3,5]].forEach(g=>addGem(L,g[0],g[1],g[2]));
+  scatterItems(L,12,1.3);
+  L.update=function(t,dt){atticFrame(L,t,dt);};
+  return L;
+}
+function atticFrame(L,t,dt){
+  const c=L.chest;
+  if(c.open){c.openT=Math.min(1,c.openT+dt*1.4);c.lid.rotation.x=-c.openT*2.1;}
+  if(L.lit){L.bulb.material.color.set(0xfff2b0);L.glow.visible=true;L.glow.scale.setScalar(26+Math.sin(t*3)*1.2);}
+  if(doll){doll.position.y=5;}
+}
+
+/* ----- the bat ----- */
+function makeBat(){
+  const mats=[],mk=c=>{const m=new THREE.MeshLambertMaterial({color:c,emissive:0x000000});mats.push(m);return m;};
+  const g=new THREE.Group();g.rotation.order='YXZ';
+  const body=new THREE.Group();g.add(body);
+  const fur=mk(0x3a2a55),wingM=mk(0x5a3f7a),ear=mk(0x2a1c40);
+  S(M(GEO.sph,fur,0,0,0,body),1.5,1.6,1.9);
+  const head=new THREE.Group();head.position.set(0,.5,-1.8);body.add(head);
+  S(M(GEO.sph,fur,0,0,0,head),1.2,1.1,1.1);
+  [-1,1].forEach(s=>{
+    const e=M(new THREE.ConeGeometry(.5,1.5,5),ear,s*.7,1.0,.1,head);e.rotation.z=-s*.25;
+    S(M(GEO.sph,bas(0xffd84a),s*.45,.15,-.95,head),.2);
+    const f=M(new THREE.ConeGeometry(.12,.45,4),bas(0xffffff),s*.3,-.6,-.9,head);f.rotation.x=Math.PI;
+  });
+  S(M(GEO.sph,bas(0xff9ab0),0,-.1,-1.15,head),.2);
+  const wings=[];
+  [-1,1].forEach(s=>{
+    const w=new THREE.Group();w.position.set(s*1.1,.3,-.2);body.add(w);
+    const mem=M(GEO.box,wingM,s*3.6,0,.3,w);mem.scale.set(7.2,.12,3.6);
+    for(let k=0;k<3;k++){const fb=M(cyl(.09,.09,7.4,5),ear,s*3.7,.05,-1.2+k*1.5,w);fb.rotation.z=Math.PI/2;}
+    wings.push({g:w,s:s});
+  });
+  return {group:g,body:body,wings:wings,mats:mats,eyes:[]};
+}
+function spawnBat(L){
+  const m=makeBat();scene.add(m.group);
+  bat={m:m,x:L.batHome.x,y:L.batHome.y,z:L.batHome.z,yaw:0,state:'hang',t:0,hp:1,max:1,flash:0,a:0,rage:false,ct:3,tp:null,sx:0,sy:0,sz:0};
+  m.group.position.set(bat.x,bat.y,bat.z);m.body.rotation.x=Math.PI;
+  m.wings.forEach(w=>{w.g.rotation.z=-w.s*1.35;});
+  m.group.visible=true;
+}
+function wakeBat(){
+  bat.state='wake';bat.t=0;bat.max=bat.hp=Math.round(bossHP()*.5);
+  sfx.roar();shake=1.4;setTimeout(()=>sfx.squeak(),300);
+  $('boss').querySelector('.nm').textContent='🦇 Count Flap, the Giant Bat 🦇';$('boss').style.display='block';
+  banner('🦇 A giant BAT woke up!','Web it when it swoops — and JUMP when it screeches!',4600);
+}
+function batSpheres(){
+  const b=bat,r={x:Math.cos(b.yaw),z:-Math.sin(b.yaw)};
+  return [{x:b.x,y:b.y,z:b.z,r:2.6},{x:b.x+r.x*4.2,y:b.y,z:b.z+r.z*4.2,r:2.3},{x:b.x-r.x*4.2,y:b.y,z:b.z-r.z*4.2,r:2.3}];
+}
+function damageBat(amt,p){
+  if(!bat||bat.state==='hang'||bat.state==='dead'||bat.state==='wake')return;
+  bat.hp-=amt;bat.flash=1;if(p){p.dmg+=amt;p.score+=Math.max(1,Math.round(amt));}
+  sfx.hit();if(bat.hp<=0)batDown(p);
+  else if(!bat.rage&&bat.hp<bat.max*.5){bat.rage=true;banner('🦇 The bat is furious!','It dives faster — and screeches!',2600);}
+}
+function batDown(p){
+  const b=bat;b.state='dead';b.t=0;b.vy=0;sfx.win();shake=1.6;
+  for(const q of players)q.score+=300;
+  $('boss').style.display='none';
+  burst(b.x,b.y,b.z,0x8a6aff,40,10,5,1.2);
+}
+function updateBat(dt){
+  const b=bat;if(!b)return;const m=b.m;
+  b.t+=dt;
+  for(const mm of m.mats)mm.emissive.setRGB(b.flash,b.flash*.4,b.flash*.35);
+  b.flash=Math.max(0,b.flash-dt*4);
+  let flap=0;
+  if(b.state==='hang'){
+    m.group.position.set(b.x,b.y+Math.sin(b.t*1.5)*.15,b.z);return;
+  }else if(b.state==='wake'){
+    const k=Math.min(1,b.t/1.4);m.body.rotation.x=lerp(Math.PI,0,k);b.y=lerp(b.y,28,dt*1.6);flap=1;
+    if(b.t>1.4){b.state='circle';b.t=0;b.ct=2.4;b.a=Math.atan2(b.z,b.x);}
+  }else if(b.state==='circle'){
+    flap=1;b.a+=dt*(b.rage?.9:.65);
+    const tx=Math.cos(b.a)*24,tz=Math.sin(b.a)*24,ty=26+Math.sin(b.t*2)*3;
+    const nx=b.x+(tx-b.x)*Math.min(1,dt*2.5),nz=b.z+(tz-b.z)*Math.min(1,dt*2.5);
+    b.yaw=Math.atan2(-(nx-b.x),-(nz-b.z));b.x=nx;b.z=nz;b.y=lerp(b.y,ty,Math.min(1,dt*2));
+    b.ct-=dt;
+    if(b.ct<=0){
+      const alive=players.filter(p=>p.down<=0);
+      if(b.rage&&Math.random()<.35){b.state='screech';b.t=0;b.sc=false;sfx.roar();}
+      else if(alive.length){const p=alive[(Math.random()*alive.length)|0];b.tp=p;b.state='dive';b.t=0;b.sx=b.x;b.sy=b.y;b.sz=b.z;}
+      else b.ct=1;
+    }
+  }else if(b.state==='dive'){
+    flap=.3;
+    const p=b.tp;
+    if(p&&p.down<=0){
+      const dx=p.x-b.x,dy=(p.y+1.8)-b.y,dz=p.z-b.z,d=Math.hypot(dx,dy,dz)||1,sp=(b.rage?42:34);
+      b.x+=dx/d*sp*dt;b.y+=dy/d*sp*dt;b.z+=dz/d*sp*dt;
+      b.yaw=Math.atan2(-dx,-dz);m.body.rotation.x=clamp(Math.atan2(dy,Math.hypot(dx,dz)),-1.2,.4)*-1;
+      for(const q of players){if(q.down<=0&&Math.hypot(q.x-b.x,q.z-b.z)<3.4&&Math.abs((q.y+1.2)-b.y)<3.4){hurtPlayer(q,2,b.x,b.z,18);b.state='climb';b.t=0;break;}}
+    }
+    if(b.t>1.8||d2(b,p)<2){b.state='climb';b.t=0;}
+  }else if(b.state==='climb'){
+    flap=1;b.y+=dt*22;m.body.rotation.x=lerp(m.body.rotation.x,0,dt*5);b.x+=Math.cos(b.a)*dt*6;b.z+=Math.sin(b.a)*dt*6;
+    if(b.t>1.1){b.state='circle';b.t=0;b.ct=b.rage?1.8:2.8;b.a=Math.atan2(b.z,b.x);}
+  }else if(b.state==='screech'){
+    flap=.6;b.y=lerp(b.y,30,dt*2);m.body.rotation.x=lerp(m.body.rotation.x,-.5,dt*5);
+    for(const p of players)p.screechWarn=true;
+    if(!b.sc&&b.t>1.1){
+      b.sc=true;shake=Math.max(shake,1.1);burst(b.x,b.y,b.z,0xc9b0ff,30,12,2,1);
+      for(const p of players){if(p.down<=0&&p.y<2.2)hurtPlayer(p,1,b.x,b.z,12);}
+    }
+    if(b.t>1.6){for(const p of players)p.screechWarn=false;b.state='circle';b.t=0;b.ct=2.4;m.body.rotation.x=0;}
+  }else if(b.state==='dead'){
+    b.vy=(b.vy||0)-40*dt;b.y+=b.vy*dt;m.group.rotation.z+=dt*6;
+    if(b.y<1.5){b.y=1.5;if(!b.landed){b.landed=true;shake=Math.max(shake,1.2);burst(b.x,1,b.z,0xffffff,24,8,4,1);setTimeout(()=>{if(bat){scene.remove(bat.m.group);}startChest();},900);}}
+    flap=0;
+  }
+  m.wings.forEach(w=>{w.g.rotation.z=w.s*(flap>0?Math.sin(b.t*(flap>.9?14:18))*.8*(flap>.5?1:.4):-1.0)*1+(b.state==='dead'?w.s*.5:0);});
+  m.group.position.set(b.x,b.y,b.z);m.group.rotation.y=b.yaw;
+}
+function d2(b,p){return p?Math.hypot(p.x-b.x,(p.y+1.8)-b.y,p.z-b.z):0;}
+
+/* ----- Brick Buddies ----- */
+function makeBrickFig(o){
+  const g=new THREE.Group(),mats=[];
+  const mk=c=>{const m=new THREE.MeshLambertMaterial({color:c,emissive:0x000000});mats.push(m);return m;};
+  const skin=mk(0xffd23f),legC=mk(o.legs||0x2b4a8a),torC=mk(o.body),hatC=mk(o.hat);
+  const legL=new THREE.Group(),legR=new THREE.Group();legL.position.set(-.38,1.3,0);legR.position.set(.38,1.3,0);g.add(legL);g.add(legR);
+  M(GEO.box,legC,0,-.65,0,legL).scale.set(.7,1.3,.8);M(GEO.box,legC,0,-.65,0,legR).scale.set(.7,1.3,.8);
+  M(GEO.box,torC,0,2.1,0,g).scale.set(1.5,1.6,.95);
+  const armL=new THREE.Group(),armR=new THREE.Group();armL.position.set(-1.0,2.75,0);armR.position.set(1.0,2.75,0);g.add(armL);g.add(armR);
+  [armL,armR].forEach(a=>{M(GEO.box,torC,0,-.6,0,a).scale.set(.45,1.3,.55);S(M(GEO.sph,skin,0,-1.35,0,a),.3);});
+  const head=new THREE.Group();head.position.set(0,2.95,0);g.add(head);
+  M(GEO.box,skin,0,.6,0,head).scale.set(1.25,1.2,1.1);
+  const eyeMat=new THREE.MeshBasicMaterial({color:0x151515});
+  [-1,1].forEach(s=>S(M(GEO.sph,eyeMat,s*.3,.72,-.57,head),.1));
+  M(GEO.box,bas(0x3a1a10),0,.38,-.57,head).scale.set(.5,.08,.05);
+  const brows=new THREE.Group();head.add(brows);brows.visible=false;
+  [-1,1].forEach(s=>{const br=M(GEO.box,bas(0x2a0a0a),s*.3,.95,-.6,brows);br.scale.set(.42,.1,.06);br.rotation.z=s*.5;});
+  const hat=o.hatType||'cap';
+  if(hat==='cap'){M(GEO.box,hatC,0,1.3,0,head).scale.set(1.35,.4,1.2);M(GEO.box,hatC,0,1.2,-.78,head).scale.set(1.15,.12,.5);}
+  else if(hat==='beanie'){M(GEO.box,hatC,0,1.35,0,head).scale.set(1.3,.55,1.15);M(GEO.box,hatC,0,1.7,0,head).scale.set(.5,.2,.5);}
+  else if(hat==='crown'){M(GEO.box,hatC,0,1.25,0,head).scale.set(1.3,.3,1.15);[-.45,0,.45].forEach(x=>{M(new THREE.ConeGeometry(.2,.5,4),hatC,x,1.58,0,head);});}
+  else if(hat==='helmet'){M(GEO.box,hatC,0,1.35,0,head).scale.set(1.45,.7,1.3);}
+  else if(hat==='hero'){M(GEO.box,hatC,0,1.3,0,head).scale.set(1.35,.4,1.2);M(GEO.box,hatC,0,1.2,-.78,head).scale.set(1.15,.12,.5);const cape=M(GEO.box,lam(0xd8383a),0,2.0,.7,g);cape.scale.set(1.5,2.2,.12);}
+  return {group:g,legL:legL,legR:legR,armL:armL,armR:armR,head:head,brows:brows,eyeMat:eyeMat,mats:mats};
+}
+const FIG_STYLES=[
+  {body:0x2a8fd8,hat:0xd8383a,hatType:'cap'},
+  {body:0x3aa84a,hat:0x2b2b2b,hatType:'beanie'},
+  {body:0xd84a9a,hat:0xffd23f,hatType:'crown'},
+  {body:0xff8a1e,hat:0x5a5a66,hatType:'helmet'},
+  {body:0x8a4ad8,hat:0x3aa84a,hatType:'beanie'},
+  {body:0xf2f2f2,hat:0x2fc7b8,hatType:'hero',legs:0x2fc7b8}
+];
+function makeFig(i,x,z){
+  const st=FIG_STYLES[i%FIG_STYLES.length],m=makeBrickFig(st);
+  m.group.scale.setScalar(1.15);scene.add(m.group);
+  const blob=new THREE.Mesh(new THREE.CircleGeometry(1,16),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.3,depthWrite:false}));blob.rotation.x=-Math.PI/2;scene.add(blob);
+  const f={m:m,blob:blob,i:i,x:x,y:0,z:z,yaw:Math.PI,state:'cheer',t:Math.random()*5,hp:12,max:12,flash:0,cd:0,delay:0,team:'foe',hop:0,from:null,to:null,hopT:0,ally:false};
+  return f;
+}
+function startChest(){
+  game.phase='chest';atticT=5.6;
+  const c=level.chest;c.open=true;
+  sfx.claim();setTimeout(()=>sfx.win(),250);shake=1;
+  burst(c.x,9,c.z,0xffd84a,40,10,6,1.2);
+  const ang0=-.9;
+  for(let i=0;i<6;i++){
+    const f=makeFig(i,c.x,c.z);f.y=8;f.from=V3(c.x,8,c.z);
+    const a=ang0+i*(Math.PI*1.35/5),r=8.5;
+    f.to=V3(c.x+Math.cos(a)*r,0,c.z+Math.sin(a)*r+4);f.hopT=-i*.18;f.team=i===5?'ally':'foe';f.ally=(i===5);
+    f.m.group.visible=false;
+    figs.push(f);
+  }
+  banner('The toy chest popped open! 🧱','You found the Brick Buddies!',4200);
+}
+function startBetray(){
+  game.phase='betray';atticT=5.2;
+  for(const f of figs){
+    if(f.ally){f.state='ally';continue;}
+    f.state='back';
+    const p=nearestAlive(f.x,f.z);if(p)f.yaw=Math.atan2(-(p.x-f.x),-(p.z-f.z))+Math.PI;
+  }
+  sfx.no();setTimeout(()=>sfx.roar(),200);
+  banner('…they turned their backs on you 😠','The Brick Buddies don’t want a spider in their attic!',3400);
+  setTimeout(()=>{if(game.phase==='betray')banner('But one Brick Buddy stayed! 💛','The caped one is on your side!',3200);},2600);
+}
+function startBrickFight(){
+  game.phase='brickfight';let k=0;
+  for(const f of figs){if(f.ally)continue;f.state='chase';f.delay=k*.7;f.m.brows.visible=true;f.team='foe';k++;}
+  sfx.roar();
+  $('boss').querySelector('.nm').textContent='😠 Grumpy Brick Buddies 😠';$('boss').style.display='block';
+  banner('The Brick Buddies attack! 🧱','Web them, pounce them — your friend will help!',4200);
+}
+function foes(){return figs.filter(f=>!f.ally&&f.state!=='dead');}
+function damageFig(f,amt,p,quiet){
+  if(f.ally||f.state==='dead'||f.state==='cheer'||f.state==='back')return;
+  f.hp-=amt;f.flash=1;if(p){p.dmg+=amt;p.score+=Math.max(1,Math.round(amt));}
+  if(!quiet)sfx.hit();
+  if(f.hp<=0)killFig(f,p);
+}
+function killFig(f,p){
+  f.state='dead';if(p){p.kills++;p.score+=80;}
+  const cols=[FIG_STYLES[f.i%6].body,0xffd23f,FIG_STYLES[f.i%6].hat,0x2b4a8a];
+  for(let k=0;k<12;k++){
+    const bm=M(GEO.box,lam(cols[k%4]),f.x+rand(-1,1),rand(1,4),f.z+rand(-1,1),level.root);bm.scale.set(rand(.5,1),rand(.4,.9),rand(.5,1));
+    debris.push({m:bm,vx:rand(-8,8),vy:rand(6,14),vz:rand(-8,8),r:rand(-6,6),ground:false});
+  }
+  burst(f.x,2,f.z,0xffffff,12,6,3,.7);sfx.hit();
+  scene.remove(f.m.group);scene.remove(f.blob);
+}
+function figSphere(f){return {x:f.x,y:f.y+2.6,z:f.z,r:2.0};}
+function updateFigs(dt){
+  const L=level;
+  const foeList=figs.filter(f=>!f.ally&&f.state!=='dead');
+  let hpSum=0,hpMax=0;
+  for(const f of figs){
+    if(f.state==='dead')continue;
+    f.t+=dt;if(f.cd>0)f.cd-=dt;f.flash=Math.max(0,f.flash-dt*4);
+    for(const mm of f.m.mats)mm.emissive.setRGB(f.flash,f.flash*.5,f.flash*.4);
+    let swing=0,armUp=false,hop=0,speed=0;
+    if(f.state==='cheer'){
+      if(f.hopT<0){f.hopT+=dt;f.m.group.visible=f.hopT>=0;}
+      if(f.hopT>=0&&f.hopT<1){
+        f.m.group.visible=true;f.hopT=Math.min(1,f.hopT+dt*1.3);
+        f.x=lerp(f.from.x,f.to.x,f.hopT);f.z=lerp(f.from.z,f.to.z,f.hopT);f.y=lerp(f.from.y,f.to.y,f.hopT)+Math.sin(f.hopT*Math.PI)*8;
+        const p=nearestAlive(f.x,f.z);if(p)f.yaw=Math.atan2(-(p.x-f.x),-(p.z-f.z));
+      }else if(f.hopT>=1){f.y=0;const p=nearestAlive(f.x,f.z);if(p)f.yaw+=clamp(angDiff(f.yaw,Math.atan2(-(p.x-f.x),-(p.z-f.z))),-4*dt,4*dt);hop=Math.abs(Math.sin(f.t*6))*.7;armUp=true;}
+    }else if(f.state==='back'){
+      f.y=0;armUp=false;
+    }else if(f.state==='ally'){
+      f.y=0;
+      const p=nearestAlive(f.x,f.z);
+      let tgt=null,bd=22*22;for(const q of foeList){if(q.state==='cheer'||q.state==='back')continue;const d=(q.x-f.x)**2+(q.z-f.z)**2;if(d<bd){bd=d;tgt=q;}}
+      let tx=p?p.x:f.x,tz=p?p.z:f.z,gap=4.5;
+      if(tgt){tx=tgt.x;tz=tgt.z;gap=9;}
+      const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);
+      if(d>gap){const sp=Math.min(14,4+(d-gap)*2.5),po={x:f.x+dx/d*sp*dt,y:0,z:f.z+dz/d*sp*dt,vx:0,vz:0,onGround:true,soft:true};resolveHoriz(po,1.0,3,true);speed=sp;f.x=po.x;f.z=po.z;}
+      if(d>.1)f.yaw+=clamp(angDiff(f.yaw,Math.atan2(-dx,-dz)),-8*dt,8*dt);
+      if(tgt&&f.cd<=0&&game.phase==='brickfight'&&d<16){
+        f.cd=1.8;damageFig(tgt,3,null,true);sfx.shoot();
+        const br=M(GEO.box,bas(0xffd23f),f.x,3.6,f.z,scene);br.scale.set(.7,.5,.7);
+        const dd=Math.hypot(tgt.x-f.x,tgt.z-f.z)||1;net.vis.push({m:br,vel:V3((tgt.x-f.x)/dd*50,0,(tgt.z-f.z)/dd*50),life:Math.min(.5,dd/50)});
+        armUp=true;
+      }
+      f.heal=(f.heal||14)-dt;
+      if(f.heal<=0&&game.phase==='brickfight'){
+        const hurt=players.find(q=>q.down<=0&&q.hp<q.maxHp);
+        if(hurt){f.heal=14;hurt.hp++;sfx.claim();burst(hurt.x,hurt.y+1,hurt.z,0xff4d79,10,4,2,.6);hurt.toast='💛 Your Brick Buddy healed you!';hurt.toastT=2;}else f.heal=3;
+      }
+      if(game.phase==='attic-win'){armUp=true;hop=Math.abs(Math.sin(f.t*7))*.6;}
+    }else if(f.state==='chase'){
+      hpSum+=f.hp;hpMax+=f.max;
+      f.y=0;
+      if(f.delay>0){f.delay-=dt;armUp=true;hop=Math.abs(Math.sin(f.t*9))*.3;}
+      else{
+        const p=nearestAlive(f.x,f.z);
+        if(p){
+          const dx=p.x-f.x,dz=p.z-f.z,d=Math.hypot(dx,dz);
+          f.yaw+=clamp(angDiff(f.yaw,Math.atan2(-dx,-dz)),-7*dt,7*dt);
+          let sp=d>2.8?(foeList.length<=2?8.5:6.8):0;
+          const fw=fwd(f.yaw);
+          let ox=f.x+fw.x*sp*dt,oz=f.z+fw.z*sp*dt;
+          for(const o of foeList){if(o===f||o.state!=='chase')continue;const ddx=ox-o.x,ddz=oz-o.z,dd=Math.hypot(ddx,ddz);if(dd<2.4&&dd>.01){ox+=ddx/dd*(2.4-dd)*.5;oz+=ddz/dd*(2.4-dd)*.5;}}
+          const po={x:ox,y:0,z:oz,vx:0,vz:0,onGround:true,soft:true};resolveHoriz(po,1.0,3,true);
+          speed=Math.hypot(po.x-f.x,po.z-f.z)/Math.max(dt,1e-4);f.x=po.x;f.z=po.z;
+          if(d<3.2&&f.cd<=0&&p.down<=0&&p.y<5){hurtPlayer(p,1,f.x,f.z,13);f.cd=1.15;armUp=true;}
+        }
+      }
+    }
+    if(f.state!=='dead'){
+      const m=f.m;
+      m.group.position.set(f.x,f.y+hop,f.z);m.group.rotation.y=f.yaw;
+      const sw=Math.sin(f.t*(8+speed*.4))*Math.min(1,speed/5)*.7;
+      m.legL.rotation.x=sw;m.legR.rotation.x=-sw;
+      if(armUp){m.armL.rotation.z=2.4;m.armR.rotation.z=-2.4;m.armL.rotation.x=m.armR.rotation.x=0;}
+      else{m.armL.rotation.z=.05;m.armR.rotation.z=-.05;m.armL.rotation.x=-sw*.8;m.armR.rotation.x=sw*.8;}
+      f.blob.position.set(f.x,.06,f.z);f.blob.scale.setScalar(1.6);
+    }
+  }
+  if(game.phase==='brickfight'&&hpMax>0)$('boss').querySelector('i').style.width=Math.max(0,hpSum/Math.max(1,figs.filter(f=>!f.ally).length*12)*100)+'%';
+}
+
+/* ----- flow ----- */
+function startAtticTransition(){
+  if(game.transition)return;game.transition=true;
+  $('fade').style.opacity=1;sfx.win();
+  setTimeout(function(){
+    if(!atticL){atticL=seeded(2468,buildAttic);scene.add(atticL.root);}
+    loadLevel(atticL);game.phase='attic';
+    players.forEach((p,i)=>{if(p.riding)petDismount(p,true);placeAtSpawn(p,i,players.length);p.hp=p.maxHp;p.down=0;p.silk=100;});
+    petsEnterAttic();
+    $('boss').style.display='none';
+    $('fade').style.opacity=0;
+    banner('Up in the attic! 🏚️','It’s dark and dusty… web all 5 dusty things to clean it up.',5200);
+    game.transition=false;
+  },700);
+}
+function petsEnterAttic(){
+  const s=level.spawn;
+  for(const e of pets){
+    if(e.state==='beaten'||e.state==='hostile'||e.state==='grief'){e.state='follow';e.sc=1;e.m.group.rotation.z=0;setAngry(e,false,false);}
+    if(e.state==='talk')e.state='wait';
+    if(e.state==='caged')continue;
+    if(e.state==='wait'||(e.state==='follow'&&!e.rider)){e.x=s.x+(e.kind==='pip'?(e.state==='wait'?9:3):-3);e.z=s.z-(e.state==='wait'?8:3);e.y=0;if(e.state==='wait')e.bubble.visible=true;}
+  }
+}
+function atticAllClean(){
+  game.phase='attic-lights';level.flick=2.8;level.flickT=0;
+  banner('Squeaky clean! ✨','Something is flickering above…',2600);
+}
+function atticUpdate(dt){
+  const L=level;if(!L||L.name!=='attic')return;
+  if(game.phase==='attic'){
+    if(!L.dollSeen&&L.dollPos&&players.some(p=>Math.hypot(p.x-L.dollPos.x,p.z-L.dollPos.z)<11)){L.dollSeen=true;banner('🪆 A broken wooden doll…','Its tag reads: “The designer’s favourite toy.”',5200);}
+  }
+  if(game.phase==='attic-lights'){
+    L.flick-=dt;L.flickT+=dt;
+    if(L.flick>0){const on=Math.sin(L.flickT*38)>.15&&Math.random()<.8;atticLights(on&&L.flickT>.8);L.glow.visible=on&&L.flickT>.8;L.bulb.material.color.set(on&&L.flickT>.8?0xfff2b0:0x4a4033);if(Math.random()<dt*14)sfx.no();}
+    else{
+      L.lit=true;atticLights(true);game.phase='bat';sfx.win();
+      if(!bat)spawnBat(L);wakeBat();
+    }
+  }
+  if(game.phase==='bat'&&bat)updateBat(dt);
+  if(game.phase==='chest'){
+    atticT-=dt;
+    if(atticT<=0)startBetray();
+  }
+  if(game.phase==='betray'){
+    atticT-=dt;
+    if(atticT<=0)startBrickFight();
+  }
+  if(game.phase==='brickfight'&&foes().length===0&&!L.won){
+    L.won=true;game.phase='attic-win';atticT=3.6;$('boss').style.display='none';
+    sfx.win();banner('The bad Brick Buddies fell apart 🧱','Your caped friend is a true hero! 💛',3400);
+    for(const q of players){q.score+=400;}
+  }
+  if(game.phase==='attic-win'){atticT-=dt;if(atticT<=0){game.phase='attic-end';victory();}}
+  updateFigs(dt);
+}
+function atticPrompt(p){
+  if(!level||level.name!=='attic')return '';
+  if(p.screechWarn&&p.y<2.2)return '🦇 SCREECH! JUMP!';
+  if(game.phase==='attic'&&level.dollPos&&Math.hypot(p.x-level.dollPos.x,p.z-level.dollPos.z)<10)return '🪆 A broken doll: “The designer’s favourite toy”';
+  return '';
+}
+
 /* ================= update / render ================= */
 function updateGame(dt){
   tTotal+=dt;
@@ -2609,6 +3102,7 @@ function updateGame(dt){
   if(shake>0)shake=Math.max(0,shake-dt*2.5);
   for(const p of players)updatePlayer(p,dt);
   updatePets(dt);
+  atticUpdate(dt);
   clearEdges();
   updateProjectiles(dt);
   updateBoss(dt);updateBabies(dt);updateFireballs(dt);
@@ -2719,7 +3213,7 @@ try{
   requestAnimationFrame(frame);
 }catch(e){const b=$('err');b.style.display='block';b.textContent='Setup error: '+e.message+'\n'+(e.stack||'').split('\n').slice(0,4).join('\n');console.error(e);}
 
-window.__G={get pip(){return pip;},get bro(){return bro;},get pets(){return pets;},startRampage:startRampage,petsInit:petsInit,game:game,get players(){return players;},get level(){return level;},get boss(){return boss;},get babies(){return babies;},lobby:lobby,net:net,netConnect:netConnect,startGame:startGame,spawnBoss:wakeBoss,profiles:profiles,save:save,openShop:openShop,get shopOpen(){return shopOpen;},checkTier:checkTier,claimHit:claimHit,damageBoss:damageBoss,startTransition:startTransition,keys:keys,keyHit:keyHit,mouse:mouse,touchZones:touchZones};
+window.__G={damageBat:damageBat,damageFig:damageFig,killFig:killFig,get bat(){return bat;},get figs(){return figs;},startAtticTransition:startAtticTransition,get doll(){return doll;},get pip(){return pip;},get bro(){return bro;},get pets(){return pets;},startRampage:startRampage,petsInit:petsInit,game:game,get players(){return players;},get level(){return level;},get boss(){return boss;},get babies(){return babies;},lobby:lobby,net:net,netConnect:netConnect,startGame:startGame,spawnBoss:wakeBoss,profiles:profiles,save:save,openShop:openShop,get shopOpen(){return shopOpen;},checkTier:checkTier,claimHit:claimHit,damageBoss:damageBoss,startTransition:startTransition,keys:keys,keyHit:keyHit,mouse:mouse,touchZones:touchZones};
 })();
 </script>
 </body>
