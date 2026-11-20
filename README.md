@@ -5,7 +5,7 @@ A collection of small browser games. Each game lives in its own folder with its 
 | Game | Folder | Notes |
 |------|--------|-------|
 | 🕷️ Spider Takedown | [`spider-takedown/`](spider-takedown/) | 3D first-person spider game, 1–5 players (keyboard, controller, touch). Needs internet for three.js and the font. |
-| 🔍 Spot the Difference | [`spot-the-difference/`](spot-the-difference/) | Kids' game: tap the 10 differences between two pictures. New random scene every time, with people and speech bubbles. Needs internet for the font. |
+| 🔍 Spot the Difference | [`spot-the-difference/`](spot-the-difference/) | Kids' game: tap the 10 differences between two pictures. Six settings (countryside, under the sea, outer space, farm, beach, city) and three difficulty levels, picked at random each time, with people and speech bubbles. Needs internet for the font. |
 | 🏠 Build a Home | [`build-a-home/`](build-a-home/) | Buy a run-down house, fix up the outside and every room, play jobs for coins, then sell it with a stamp. Make your own builder. Needs internet for the fonts. Saves progress under `build-a-home-v1`. |
 
 ## Adding a game

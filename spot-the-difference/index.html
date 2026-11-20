@@ -21,6 +21,8 @@ html,body{margin:0;min-height:100%}
 body{background:var(--bg);color:var(--ink);font-family:"Fredoka","Comic Sans MS","Trebuchet MS",system-ui,sans-serif;text-align:center;padding:16px 14px 28px}
 h1{font-size:clamp(26px,5vw,40px);margin:4px 0 2px;font-weight:700}
 .sub{margin:0 0 14px;font-size:clamp(16px,2.6vw,20px);opacity:.85}
+.tags{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.tag{background:var(--card);border:3px solid var(--ink);border-radius:999px;padding:3px 14px;font-weight:700;font-size:clamp(15px,2.8vw,18px)}
 .pics{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:980px;margin:0 auto}
 .pic{background:var(--card);border-radius:22px;padding:8px;box-shadow:0 6px 0 var(--shadow)}
 .pic svg{display:block;width:100%;height:auto;border-radius:16px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -51,6 +53,7 @@ button:focus-visible{outline:4px solid var(--ink);outline-offset:3px}
 <body>
 <h1>Spot the Difference!</h1>
 <p class="sub">Tap the spots where the two pictures don’t match.</p>
+<div class="tags" id="tags"></div>
 
 <div class="pics">
   <div class="pic"><svg id="A" viewBox="0 0 400 300" role="img" aria-label="Picture one"></svg></div>
@@ -71,6 +74,7 @@ button:focus-visible{outline:4px solid var(--ink);outline-offset:3px}
 </div>
 
 <script>
+// ---------- colours (all 6-digit hex so they can be nudged) ----------
 const PAL={
  flower:['#ff6fa5','#ffa733','#b06bff','#ff4d4d','#ffffff'],
  butterfly:['#ff9f1c','#7b5cff','#2ec4b6','#ff5d8f'],
@@ -78,18 +82,69 @@ const PAL={
  mushroom:['#e63946','#ff9f1c','#b06bff','#3f7be8'],
  tree:['#3fa34d','#f0a030','#8bc34a','#2e8b8b'],
  house:['#d9534f','#3f7be8','#8e5ac8','#e08a1e'],
- bird:['#222','#e63946','#3f7be8','#7b5cff']
+ bird:['#222222','#e63946','#3f7be8','#7b5cff'],
+ person:['#e63946','#3f7be8','#ffd93b','#2dbd6e','#b06bff','#ff8fb1','#ff9f1c'],
+ // under the sea
+ fish:['#ff9f1c','#ff5d8f','#2ec4b6','#ffd93b','#7b5cff','#ff6b4a','#4cc9f0'],
+ jelly:['#ff8fd0','#b896ff','#7be0ff','#ffb3a7'],
+ starfish:['#ff7a59','#ffa733','#ff5d8f','#b06bff'],
+ crab:['#e8453c','#ff8c42','#d94f70','#c0392b'],
+ seahorse:['#ffb703','#ff6f91','#b06bff','#2ec4b6'],
+ turtle:['#5ea04a','#3f9c7a','#8bb04a','#4c9f9f'],
+ coral:['#ff6f91','#ff9671','#b06bff','#f9a03f'],
+ seaweed:['#2fa05a','#3dbb6b','#7bc043','#1f8a70'],
+ sub:['#ffd93b','#ff6b4a','#2dbd6e','#ff8fb1'],
+ chest:['#a0522d','#7a4b22','#c0392b','#2e6fba'],
+ shell:['#ffb3c7','#ffd9a0','#c9b6ff','#ffe28a'],
+ diver:['#ff9f1c','#2ec4b6','#ff5d8f','#ffd93b','#7b5cff'],
+ // space
+ planet:['#ff8c5a','#5ab0ff','#c77dff','#7bd96a','#ffd166','#ff6f91'],
+ rocket:['#e63946','#3f7be8','#2dbd6e','#ff9f1c','#b06bff'],
+ ufo:['#2dbd6e','#ff5d8f','#ffb703','#3f7be8','#b06bff'],
+ satellite:['#ffcf4a','#d9dde8','#ff8f6b','#9bd0ff'],
+ star:['#fff6a8','#ffffff','#ffd1f0','#bfe9ff'],
+ astronaut:['#e63946','#3f7be8','#ff9f1c','#2dbd6e','#b06bff'],
+ alien:['#7bd96a','#b06bff','#ff8fb1','#6bd6e8'],
+ moonrock:['#8a8fa6','#a39bb0','#7c8499','#b0a79a'],
+ flag:['#e63946','#3f7be8','#2dbd6e','#ff9f1c'],
+ rover:['#ffd93b','#e63946','#3f7be8','#2dbd6e'],
+ asteroid:['#9a8f8a','#8b8fa6','#a9998a','#7d7468'],
+ // farm
+ barn:['#c0392b','#3f7be8','#8e5ac8','#e08a1e'],
+ silo:['#7e9ac8','#c9a66b','#8fbf9f','#b58bc4'],
+ cow:['#2b2b2b','#8b5a2b','#c8501e','#555e7a'],
+ pig:['#ffb3c7','#f5a0b8','#ffc9a8','#e8a0b0'],
+ sheep:['#ffffff','#fff1d6','#f3e8ff','#e8f4ff'],
+ chicken:['#ffffff','#e8b86a','#c0763c','#f5e6c8'],
+ haystack:['#e8c35a','#d9a441','#f0d078','#c8962e'],
+ tractor:['#2dbd6e','#e63946','#ff9f1c','#3f7be8'],
+ sunflower:['#ffd93b','#ffb703','#ff8c1a','#ffe66d'],
+ // beach
+ umbrella:['#e63946','#3f7be8','#ffb703','#2dbd6e','#b06bff','#ff6f91'],
+ sandcastle:['#e63946','#3f7be8','#ffd93b','#2dbd6e'],
+ sailboat:['#e63946','#ffb703','#2dbd6e','#b06bff'],
+ beachball:['#e63946','#2dbd6e','#ff9f1c','#b06bff'],
+ palm:['#2fa05a','#3dbb6b','#7bc043','#1f8a70'],
+ towel:['#ff6f91','#3f7be8','#ffb703','#2dbd6e','#b06bff'],
+ bucket:['#e63946','#3f7be8','#ffb703','#2dbd6e'],
+ surfboard:['#ff6f91','#2ec4b6','#ffb703','#3f7be8'],
+ // city
+ building:['#d9534f','#f0a030','#6aa5e8','#9b7fd1','#4dbfa0','#e8846b'],
+ car:['#e63946','#3f7be8','#ffb703','#2dbd6e','#b06bff','#ff6f91','#ffffff'],
+ bus:['#e63946','#ffb703','#3f7be8','#2dbd6e'],
+ tlight:['#e63946','#ffd93b','#2dbd6e'],
+ lamp:['#ffd93b','#ff9f45','#7be0ff','#ff8fd0'],
+ hydrant:['#e63946','#ffb703','#3f7be8'],
+ mailbox:['#3f7be8','#e63946','#2dbd6e'],
+ bike:['#e63946','#3f7be8','#ffb703','#2dbd6e','#b06bff'],
+ dog:['#c68642','#e8c98a','#6b6b6b','#f5f0e6','#2b2b2b']
 };
-PAL.kite=PAL.balloon;PAL.person=['#e63946','#3f7be8','#ffd93b','#2dbd6e','#b06bff','#ff8fb1','#ff9f1c'];
-const SKIN=['#f5cba7','#e0ac80','#c68642','#8d5524','#ffdbb4'],HAIR=['#2b1b10','#6b4423','#d9a441','#c8501e','#111','#e8d8b0'],PANTS=['#3a4f8f','#4a4a4a','#6b4423','#2f6f5f'];
+PAL.kite=PAL.balloon;
+const SKIN=['#f5cba7','#e0ac80','#c68642','#8d5524','#ffdbb4'],HAIR=['#2b1b10','#6b4423','#d9a441','#c8501e','#111111','#e8d8b0'],PANTS=['#3a4f8f','#4a4a4a','#6b4423','#2f6f5f'];
 const WALLS=['#ffe4b5','#ffd1dc','#c9e7ff','#d8f0c0'];
-const THEMES=[
- {sky:'#bfe6ff',h1:'#7ccf6a',h2:'#66bb55',g:'#8fd96e'},
- {sky:'#ffe3c2',h1:'#9bd36a',h2:'#7fbf55',g:'#a6dc72'},
- {sky:'#d9d4ff',h1:'#6fcf8a',h2:'#58b878',g:'#86dc9a'},
- {sky:'#c8f1e8',h1:'#8fd06a',h2:'#74bb55',g:'#9ddc78'}
-];
-// k: kinds of difference, r: tap radius, f: footprint (spacing), y: height range
+
+// ---------- what can differ for each kind of object ----------
+// k: kinds of difference, r: tap radius, f: footprint (spacing), y: height range, person: can talk
 const T={
  house:{k:['color'],r:22,f:38,y:[168,212]},
  tree:{k:['color','size'],r:28,f:34,y:[150,205]},
@@ -101,9 +156,90 @@ const T={
  flower:{k:['missing','color','size'],r:11,f:12,y:[232,268]},
  mushroom:{k:['missing','color','size'],r:13,f:14,y:[235,275]},
  ladybug:{k:['missing','size'],r:10,f:11,y:[235,282]},
- person:{k:['missing','color','size','words'],r:18,f:50,y:[222,262],x:[58,342]}
+ person:{k:['missing','color','size','words'],r:18,f:50,y:[222,262],x:[58,342],person:1},
+ // under the sea
+ diver:{k:['missing','color','size','words'],r:18,f:50,y:[224,262],x:[58,342],person:1},
+ fish:{k:['missing','color','size'],r:15,f:20,y:[40,200]},
+ jelly:{k:['missing','color','size'],r:15,f:20,y:[40,170]},
+ bubbles:{k:['missing','size'],r:10,f:12,y:[40,215]},
+ starfish:{k:['missing','color','size'],r:11,f:12,y:[250,288]},
+ crab:{k:['missing','color','size'],r:13,f:16,y:[250,285]},
+ seahorse:{k:['missing','color'],r:14,f:16,y:[70,190]},
+ turtle:{k:['missing','color','size'],r:18,f:24,y:[60,185]},
+ coral:{k:['missing','color','size'],r:16,f:18,y:[245,275]},
+ seaweed:{k:['missing','color','size'],r:18,f:16,y:[240,262]},
+ sub:{k:['missing','color','size'],r:24,f:36,y:[60,165]},
+ chest:{k:['missing','color'],r:16,f:20,y:[258,278]},
+ shell:{k:['missing','color','size'],r:10,f:12,y:[262,290]},
+ // space
+ astronaut:{k:['missing','color','size','words'],r:18,f:50,y:[224,260],x:[58,342],person:1},
+ alien:{k:['missing','color','size','words'],r:18,f:50,y:[224,260],x:[58,342],person:1},
+ planet:{k:['missing','color','size'],r:22,f:28,y:[30,150]},
+ rocket:{k:['missing','color','size'],r:20,f:26,y:[55,175]},
+ ufo:{k:['missing','color','size'],r:20,f:28,y:[35,165]},
+ satellite:{k:['missing','color','size'],r:20,f:30,y:[35,170]},
+ star:{k:['missing','color','size'],r:9,f:10,y:[12,210]},
+ comet:{k:['missing','size'],r:18,f:24,y:[25,120]},
+ asteroid:{k:['missing','color','size'],r:11,f:12,y:[25,200]},
+ moonrock:{k:['missing','color','size'],r:10,f:12,y:[250,290]},
+ flag:{k:['missing','color'],r:18,f:14,y:[225,250]},
+ rover:{k:['missing','color'],r:20,f:28,y:[250,272]},
+ // farm
+ barn:{k:['color','missing'],r:28,f:46,y:[165,190]},
+ silo:{k:['color','missing'],r:20,f:14,y:[155,185]},
+ cow:{k:['missing','color','size'],r:20,f:32,y:[225,258]},
+ pig:{k:['missing','color','size'],r:16,f:24,y:[230,262]},
+ sheep:{k:['missing','color','size'],r:15,f:22,y:[230,262]},
+ chicken:{k:['missing','color','size'],r:11,f:14,y:[245,282]},
+ haystack:{k:['missing','color','size'],r:18,f:22,y:[232,262]},
+ tractor:{k:['missing','color'],r:24,f:34,y:[238,262]},
+ sunflower:{k:['missing','color','size'],r:12,f:14,y:[215,255]},
+ // beach
+ umbrella:{k:['missing','color','size'],r:24,f:36,y:[218,252]},
+ sandcastle:{k:['missing','color'],r:22,f:32,y:[240,270]},
+ sailboat:{k:['missing','color','size'],r:20,f:32,y:[158,192]},
+ beachball:{k:['missing','color'],r:11,f:14,y:[238,282]},
+ palm:{k:['color','size'],r:26,f:34,y:[170,205]},
+ towel:{k:['missing','color'],r:16,f:26,y:[250,282]},
+ bucket:{k:['missing','color'],r:11,f:14,y:[250,285]},
+ surfboard:{k:['missing','color'],r:18,f:12,y:[222,246]},
+ // city
+ building:{k:['color'],r:28,f:30,y:[118,150],back:1},
+ car:{k:['missing','color','size'],r:20,f:34,y:[262,284]},
+ bus:{k:['missing','color'],r:28,f:52,y:[262,274]},
+ tlight:{k:['missing','color'],r:14,f:12,y:[190,205]},
+ lamp:{k:['missing','color','size'],r:15,f:14,y:[182,205]},
+ hydrant:{k:['missing','color'],r:10,f:11,y:[218,230]},
+ mailbox:{k:['missing','color'],r:11,f:12,y:[214,226]},
+ bike:{k:['missing','color'],r:16,f:20,y:[216,230]},
+ dog:{k:['missing','color','size'],r:13,f:16,y:[220,232]}
 };
+
+// ---------- small drawing helpers ----------
+const fx=n=>n.toFixed(1);
+const sh=(y,w,h=3)=>`<ellipse cy="${y}" rx="${w}" ry="${h}" fill="#0003"/>`;
+const starPts=(n,R,r,rot=-90)=>Array.from({length:n*2},(_,i)=>{const a=(rot+i*180/n)*Math.PI/180,q=i%2?r:R;return `${fx(Math.cos(a)*q)},${fx(Math.sin(a)*q)}`}).join(' ');
+const face=o=>`<circle cy="-16" r="8" fill="${o.sk}"/><path d="M-8.5 -17 q1 -9 8.5 -9 q7.5 0 8.5 9 q-4 -5 -8.5 -4 q-4.5 -1 -8.5 4z" fill="${o.hr}"/><circle cx="-3" cy="-16" r="1" fill="#222"/><circle cx="3" cy="-16" r="1" fill="#222"/><path d="M-3 -12.5 q3 2.5 6 0" stroke="#a33" stroke-width="1" fill="none"/>`;
+const hat=o=>o.pv==='farm'?`<ellipse cy="-24" rx="12.5" ry="3.2" fill="#e3c071"/><path d="M-7 -24 q0 -7 7 -7 q7 0 7 7z" fill="#e3c071"/><rect x="-7" y="-26.5" width="14" height="2.6" fill="#c0392b"/>`
+ :o.pv==='beach'?`<ellipse cy="-24.5" rx="13" ry="3.4" fill="#fff4cf" stroke="#0002"/><path d="M-7.5 -24.5 q0 -7 7.5 -7 q7.5 0 7.5 7z" fill="#fff4cf" stroke="#0002"/><rect x="-7.5" y="-27" width="15" height="2.6" fill="#ff6f91"/>`
+ :o.pv==='city'?`<path d="M-8.5 -23 q0 -9 8.5 -9 q8.5 0 8.5 9z" fill="${o.p}"/><path d="M0 -23 h13 q0 2.5 -5 2.5 h-8z" fill="${o.p}"/>`:'';
+const bubbleDims=t=>{
+  const lines=[];let cur='';
+  t.split(' ').forEach(w=>{if(cur&&(cur+' '+w).length>14){lines.push(cur);cur=w}else cur=cur?cur+' '+w:w});
+  lines.push(cur);
+  return{lines,w:Math.max(...lines.map(l=>l.length))*5.4+12,h:lines.length*11+8};
+};
+function bubble(t){
+  const{lines,w,h}=bubbleDims(t);
+  return `<g transform="translate(0 ${(-(36+h/2)).toFixed(1)})"><polygon points="-5,${h/2-1} 3,${h/2-1} 0,${h/2+9}" fill="#fff" stroke="#3b2a63" stroke-width="1.2" stroke-linejoin="round"/><rect x="${(-w/2).toFixed(1)}" y="${(-h/2).toFixed(1)}" width="${w.toFixed(1)}" height="${h}" rx="9" fill="#fff" stroke="#3b2a63" stroke-width="1.2"/><rect x="-4" y="${h/2-3}" width="7" height="4" fill="#fff"/><text text-anchor="middle" fill="#3b2a63" style="font:700 9.5px 'Fredoka','Comic Sans MS',sans-serif">${lines.map((l,i)=>`<tspan x="0" y="${(-h/2+13+i*11).toFixed(1)}">${l}</tspan>`).join('')}</text></g>`;
+}
+function wordDiff(o){
+  const A=bubbleDims(o.say),B=bubbleDims(o.q);
+  return{x:o.x,y:o.y-(36+A.h/2)*o.s,w:Math.max(A.w,B.w)/2*o.s,h:Math.max(A.h,B.h)/2*o.s,r:0};
+}
+// ---------- drawings (origin is the middle of each thing) ----------
 const DRAW={
+ // --- shared / countryside ---
  tree:c=>`<ellipse cy="45" rx="26" ry="5" fill="#0003"/><path d="M-6 45 q2 -20 -1 -37 h14 q-3 17 -1 37z" fill="#7a4b22"/><path d="M2 45 q1 -18 0 -37 h5 q-3 17 -1 37z" fill="#5a3818"/><g fill="${c}"><circle cy="-8" r="26"/><circle cx="-17" cy="8" r="17"/><circle cx="17" cy="8" r="17"/></g><g fill="#000" fill-opacity=".15"><circle cx="8" cy="14" r="15"/><circle cx="22" cy="11" r="11"/></g><g fill="#fff" fill-opacity=".2"><circle cx="-8" cy="-17" r="13"/><circle cx="-21" cy="3" r="8"/></g><g fill="#e63946"><circle cx="-9" cy="-6" r="4"/><circle cx="12" cy="-12" r="4"/><circle cx="2" cy="10" r="4"/></g><g fill="#fff" fill-opacity=".7"><circle cx="-10" cy="-7" r="1"/><circle cx="11" cy="-13" r="1"/><circle cx="1" cy="9" r="1"/></g>`,
  house:(c,o)=>`<ellipse cy="49" rx="40" ry="6" fill="#0003"/><rect x="14" y="-26" width="10" height="18" fill="#a0522d"/><rect x="12" y="-28" width="14" height="4" fill="#7a4b22"/><rect x="-30" width="60" height="48" fill="${o.w}" stroke="#b58c58" stroke-width="1.5"/><rect x="14" width="16" height="48" fill="#000" fill-opacity=".08"/><polygon points="-38,1 0,-30 38,1" fill="${c}"/><polygon points="-38,1 0,-30 38,1" fill="none" stroke="#0004" stroke-width="1.5"/><path d="M-29 -7 h58 M-19 -14 h38 M-9 -22 h18" stroke="#0003" stroke-width="1.2"/><rect x="-7" y="22" width="14" height="26" rx="2" fill="#8b5a2b" stroke="#5a3818"/><circle cx="3" cy="36" r="1.5" fill="#ffd93b"/><g fill="#bde3ff" stroke="#6b4a2a" stroke-width="2"><rect x="-25" y="10" width="13" height="13"/><rect x="12" y="10" width="13" height="13"/></g><path d="M-18.5 10 v13 M-25 16.5 h13 M18.5 10 v13 M12 16.5 h13" stroke="#6b4a2a" stroke-width="1.2"/><path d="M-23 12 h4 l-4 4z M14 12 h4 l-4 4z" fill="#fff" fill-opacity=".6"/>`,
  flower:c=>`<ellipse cy="22" rx="6" ry="1.8" fill="#0003"/><line y2="22" stroke="#2f8f3a" stroke-width="3"/><path d="M0 15 q9 -9 11 -2 q-6 5 -11 2z" fill="#3fa34d"/>${[0,1,2,3,4].map(i=>{const a=i*1.2566;return `<circle cx="${(Math.cos(a)*6.5).toFixed(1)}" cy="${(Math.sin(a)*6.5).toFixed(1)}" r="5" fill="${c}" stroke="#0003" stroke-width=".6"/>`}).join('')}<circle r="4" fill="#ffd23b"/><circle cx="-1" cy="-1" r="1.3" fill="#fff" fill-opacity=".7"/>`,
@@ -114,81 +250,262 @@ const DRAW={
  kite:c=>`<path d="M0 18 q-7 8 0 14 q7 8 0 14" stroke="#666" fill="none"/><polygon points="0,-16 11,0 0,18 -11,0" fill="${c}"/><path d="M0 -16 V18 M-11 0 H11" stroke="#fff" stroke-opacity=".55"/>`,
  mushroom:c=>`<ellipse cy="13" rx="9" ry="2.5" fill="#0003"/><rect x="-4" y="1" width="8" height="12" rx="3" fill="#fff0d6"/><rect x="1" y="1" width="3" height="12" rx="1.5" fill="#000" fill-opacity=".1"/><path d="M-14 2 a14 12 0 0 1 28 0z" fill="${c}"/><circle cx="-5" cy="-4" r="2" fill="#fff"/><circle cx="5" cy="-5" r="2" fill="#fff"/>`,
  ladybug:()=>`<ellipse cy="8" rx="8" ry="2" fill="#0003"/><circle cx="0" cy="-8" r="3.5" fill="#222"/><circle r="8" fill="#e63946"/><line y1="-8" y2="8" stroke="#222" stroke-width="1.5"/><circle cx="-4" cy="-2" r="1.8" fill="#222"/><circle cx="4" cy="3" r="1.8" fill="#222"/>`,
- person:(c,o,t)=>`${o.mute?'':bubble(t)}<ellipse cy="26" rx="12" ry="3" fill="#0003"/><path d="M-4 8 v17 M4 8 v17" stroke="${o.p}" stroke-width="5" stroke-linecap="round"/><path d="M-6 25 h-3 M6 25 h3" stroke="#3b2a2a" stroke-width="4" stroke-linecap="round"/><path d="M-8 -9 q8 -4 16 0 l2 17 h-20z" fill="${c}"/><path d="M-8 -7 l-4 14 M8 -7 l4 14" stroke="${c}" stroke-width="4" stroke-linecap="round"/><circle cx="-12" cy="8" r="2.3" fill="${o.sk}"/><circle cx="12" cy="8" r="2.3" fill="${o.sk}"/><circle cy="-16" r="8" fill="${o.sk}"/><path d="M-8.5 -17 q1 -9 8.5 -9 q7.5 0 8.5 9 q-4 -5 -8.5 -4 q-4.5 -1 -8.5 4z" fill="${o.hr}"/><circle cx="-3" cy="-16" r="1" fill="#222"/><circle cx="3" cy="-16" r="1" fill="#222"/><path d="M-3 -12.5 q3 2.5 6 0" stroke="#a33" stroke-width="1" fill="none"/>`
-};
+ person:(c,o)=>`${sh(26,12)}<path d="M-4 8 v17 M4 8 v17" stroke="${o.p}" stroke-width="5" stroke-linecap="round"/><path d="M-6 25 h-3 M6 25 h3" stroke="#3b2a2a" stroke-width="4" stroke-linecap="round"/><path d="M-8 -9 q8 -4 16 0 l2 17 h-20z" fill="${c}"/><path d="M-8 -7 l-4 14 M8 -7 l4 14" stroke="${c}" stroke-width="4" stroke-linecap="round"/><circle cx="-12" cy="8" r="2.3" fill="${o.sk}"/><circle cx="12" cy="8" r="2.3" fill="${o.sk}"/>${face(o)}${hat(o)}`,
 
-const SAY=['Hi, my name is Sam and I am a wizard.','Hello! My name is Mia and I love cake.','Look at me! I can jump really high!','I am Leo and I have a pet dragon.','Wow! This is the best day ever!','My name is Ava and I can fly a kite.','Yum! I just ate ten big strawberries!','Hi, I am Max and I love to splash!','Can you spot all the differences?','Hello! I am Zoe and I am a pirate.','I found a tiny ladybug in the grass!','My name is Ben and I am a knight.'];
-function tweak(hex,R){ // a nearby colour: hue nudged 30-45 degrees
-  const n=parseInt(hex.slice(1),16),r=(n>>16)/255,g=(n>>8&255)/255,b=(n&255)/255;
+ // --- under the sea ---
+ diver:(c,o)=>`${sh(27,13)}<rect x="-12" y="-10" width="6" height="18" rx="3" fill="#aeb6cc"/><path d="M-4 8 v16 M4 8 v16" stroke="#26334d" stroke-width="5" stroke-linecap="round"/><ellipse cx="-7" cy="26" rx="6" ry="2.3" fill="${c}"/><ellipse cx="7" cy="26" rx="6" ry="2.3" fill="${c}"/><path d="M-8 -9 q8 -4 16 0 l2 17 h-20z" fill="#26334d"/><path d="M-9 1 h18" stroke="${c}" stroke-width="3"/><path d="M-8 -7 l-4 14 M8 -7 l4 14" stroke="#26334d" stroke-width="4" stroke-linecap="round"/><circle cx="-12" cy="8" r="2.3" fill="${o.sk}"/><circle cx="12" cy="8" r="2.3" fill="${o.sk}"/>${face(o)}<rect x="-6.5" y="-20" width="13" height="7" rx="3" fill="${c}" stroke="#fff" stroke-width="1"/><rect x="-5" y="-18.8" width="10" height="4.6" rx="2" fill="#bfe9ff"/><path d="M6 -17 q6 -1 5 -12" stroke="${c}" stroke-width="2" fill="none"/>`,
+ fish:(c,o)=>`<g transform="scale(${o.fl} 1)"><path d="M10 0 L22 -9 Q19 0 22 9z" fill="${c}"/><path d="M10 0 L22 -9 Q19 0 22 9z" fill="#000" fill-opacity=".12"/><path d="M-4 -7 Q2 -17 9 -7z" fill="${c}"/><ellipse rx="14" ry="9" fill="${c}"/><ellipse cx="-1" cy="4" rx="10" ry="4" fill="#fff" fill-opacity=".3"/><path d="M3 -8 Q7 0 3 8" stroke="#fff" stroke-opacity=".55" stroke-width="2.6" fill="none"/><circle cx="-8" cy="-2" r="2.6" fill="#fff"/><circle cx="-8.6" cy="-2" r="1.2" fill="#222"/><path d="M-13 2 q2 2 4 1" stroke="#0005" fill="none"/></g>`,
+ jelly:c=>`<g stroke="${c}" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-opacity=".8"><path d="M-8 2 q-4 7 0 13 t0 12"/><path d="M-3 3 q-4 7 0 14 t0 12"/><path d="M3 3 q4 7 0 14 t0 12"/><path d="M8 2 q4 7 0 13 t0 12"/></g><path d="M-14 3 a14 14 0 0 1 28 0 q-7 4 -14 0 q-7 4 -14 0z" fill="${c}" fill-opacity=".92"/><ellipse cx="-5" cy="-6" rx="5" ry="3" fill="#fff" fill-opacity=".45"/><circle cx="-4" cy="-1" r="1.4" fill="#322"/><circle cx="4" cy="-1" r="1.4" fill="#322"/>`,
+ bubbles:()=>`<g fill="#fff" fill-opacity=".18" stroke="#fff" stroke-opacity=".85" stroke-width="1.3"><circle cx="-3" cy="5" r="6"/><circle cx="6" cy="-3" r="4"/><circle cx="-6" cy="-7" r="2.8"/></g><g fill="#fff" fill-opacity=".8"><circle cx="-5" cy="3" r="1.5"/><circle cx="5" cy="-4.5" r="1"/></g>`,
+ starfish:c=>`<polygon points="${starPts(5,12,5.5)}" fill="${c}" stroke="#0003" stroke-width=".8" stroke-linejoin="round"/><g fill="#fff" fill-opacity=".65">${[0,1,2,3,4].map(i=>{const a=(-90+i*72)*Math.PI/180;return `<circle cx="${fx(Math.cos(a)*6.5)}" cy="${fx(Math.sin(a)*6.5)}" r="1.2"/>`}).join('')}<circle r="1.6"/></g>`,
+ crab:c=>`<g stroke="${c}" stroke-width="2" stroke-linecap="round" fill="none"><path d="M-9 3 l-6 4 M-8 6 l-5 5 M9 3 l6 4 M8 6 l5 5"/><path d="M-10 -2 q-7 -2 -7 -8 M10 -2 q7 -2 7 -8" stroke-width="2.4"/></g><circle cx="-17" cy="-12" r="4.6" fill="${c}"/><circle cx="17" cy="-12" r="4.6" fill="${c}"/><path d="M-19.5 -15 l2.5 3.5 l2.5 -3.5z M14.5 -15 l2.5 3.5 l2.5 -3.5z" fill="#000" fill-opacity=".28"/><ellipse rx="11" ry="7.5" fill="${c}"/><ellipse cx="-2" cy="-3" rx="6" ry="2.5" fill="#fff" fill-opacity=".25"/><path d="M-4 -6 v-4 M4 -6 v-4" stroke="${c}" stroke-width="1.6"/><circle cx="-4" cy="-11" r="2.2" fill="#fff"/><circle cx="4" cy="-11" r="2.2" fill="#fff"/><circle cx="-4" cy="-11" r="1" fill="#222"/><circle cx="4" cy="-11" r="1" fill="#222"/><path d="M-3 1 q3 2.5 6 0" stroke="#0006" fill="none"/>`,
+ seahorse:c=>`<path d="M0 -12 q9 4 4 13 q-6 8 1 15 q4 4 0 8" stroke="${c}" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M-3 -16 h-8 a2 2 0 0 0 0 4 h8z" fill="${c}"/><circle cx="0" cy="-14" r="6" fill="${c}"/><circle cx="-1.5" cy="-15" r="1.7" fill="#fff"/><circle cx="-1.9" cy="-15" r="0.8" fill="#222"/><path d="M5 -9 q6 2 5 8 q-4 -2 -5 -4z" fill="${c}" fill-opacity=".7"/><path d="M-2 -20 q2 -4 5 -2" stroke="${c}" stroke-width="2" fill="none"/><g stroke="#fff" stroke-opacity=".4" stroke-width="1.2" fill="none"><path d="M2 -6 q3 2 2 6 M1 3 q-3 3 0 8"/></g>`,
+ turtle:c=>`<path d="M17 -2 q8 -2 8 3 q-1 4 -8 2z" fill="#7cc36b"/><ellipse cx="22" cy="0" rx="1" ry="1" fill="#222"/><path d="M-15 2 l-8 3 l8 -5z" fill="#7cc36b"/><ellipse cx="-7" cy="10" rx="7" ry="3" fill="#7cc36b" transform="rotate(-20 -7 10)"/><ellipse cx="9" cy="10" rx="7" ry="3" fill="#7cc36b" transform="rotate(20 9 10)"/><ellipse cy="2" rx="16" ry="8" fill="#e8d5a3"/><path d="M-16 2 a16 12 0 0 1 32 0z" fill="${c}"/><path d="M-9 -3 q3 4 0 5 M0 -9 v11 M9 -3 q-3 4 0 5 M-15 2 h30" stroke="#000" stroke-opacity=".25" fill="none"/><path d="M-9 -7 q8 -5 16 0" stroke="#fff" stroke-opacity=".3" stroke-width="2" fill="none"/>`,
+ coral:c=>`<g stroke="${c}" stroke-width="5" stroke-linecap="round" fill="none"><path d="M0 18 V-6"/><path d="M0 8 q-8 -2 -9 -12"/><path d="M0 2 q8 -2 10 -11"/><path d="M0 14 q8 -2 9 -7"/></g><g fill="${c}"><circle cx="0" cy="-8" r="3.5"/><circle cx="-9" cy="-6" r="3.2"/><circle cx="10" cy="-11" r="3.2"/></g><path d="M-1 16 V-4" stroke="#fff" stroke-opacity=".3" stroke-width="1.5" fill="none"/>`,
+ seaweed:c=>`<g stroke="${c}" stroke-width="4.5" fill="none" stroke-linecap="round"><path d="M0 28 q-9 -10 0 -20 t0 -20 t0 -18"/><path d="M-6 28 q-8 -8 -1 -16 t-1 -16" stroke-width="3.5" opacity=".85"/><path d="M6 28 q8 -9 2 -17 t1 -17" stroke-width="3.5" opacity=".85"/></g>`,
+ sub:(c,o)=>`<g transform="scale(${o.fl} 1)"><rect x="8" y="-27" width="2.5" height="14" fill="#555"/><rect x="8" y="-27" width="8" height="2.5" fill="#555"/><path d="M-26 -3 L-34 -12 L-30 -1z" fill="${c}"/><path d="M-9 -9 q1 -10 9 -10 h7 q5 0 6 10z" fill="${c}"/><ellipse rx="28" ry="13" fill="${c}"/><ellipse cy="6" rx="26" ry="6" fill="#000" fill-opacity=".14"/><path d="M-26 3 h52" stroke="#fff" stroke-opacity=".4"/><g fill="#bfe9ff" stroke="#fff" stroke-width="1.6"><circle cx="-12" cy="-2" r="4"/><circle cx="0" cy="-2" r="4"/><circle cx="12" cy="-2" r="4"/></g><ellipse cx="-14" cy="-9" rx="6" ry="2" fill="#fff" fill-opacity=".35"/><rect x="-35" y="-2" width="7" height="4" fill="#555"/><ellipse cx="-35" cy="0" rx="2" ry="8" fill="#777"/><circle cx="27" cy="0" r="2.2" fill="#ffe14d"/></g>`,
+ chest:c=>`${sh(13,18,2.5)}<rect x="-14" y="-2" width="28" height="14" rx="2" fill="#8b5a2b"/><path d="M-14 -2 q0 -14 14 -14 q14 0 14 14z" fill="${c}"/><path d="M-14 -2 q0 -14 14 -14 q14 0 14 14z" fill="#fff" fill-opacity=".12"/><rect x="-9" y="-15" width="4" height="27" fill="#ffd23b"/><rect x="5" y="-15" width="4" height="27" fill="#ffd23b"/><rect x="-3" y="-5" width="6" height="8" rx="1" fill="#ffd23b" stroke="#b8860b"/><circle cx="-18" cy="12" r="3" fill="#ffd23b" stroke="#b8860b" stroke-width=".8"/><circle cx="-13" cy="15" r="3" fill="#ffd23b" stroke="#b8860b" stroke-width=".8"/><circle cx="17" cy="14" r="3" fill="#ffd23b" stroke="#b8860b" stroke-width=".8"/>`,
+ shell:c=>`<path d="M0 8 L-10 -3 a11 11 0 0 1 20 0z" fill="${c}" stroke="#0003"/><path d="M0 8 L-5 -6 M0 8 V-8 M0 8 L5 -6" stroke="#fff" stroke-opacity=".55" fill="none"/><path d="M-4 8 h8 l-1 2 h-6z" fill="${c}"/>`,
+
+ // --- space ---
+ astronaut:(c,o)=>`${sh(27,13)}<rect x="-12" y="-9" width="7" height="18" rx="3" fill="#9aa3b8"/><path d="M-4 8 v16 M4 8 v16" stroke="#f1f3f8" stroke-width="5.5" stroke-linecap="round"/><path d="M-6 25 h-3 M6 25 h3" stroke="${c}" stroke-width="4" stroke-linecap="round"/><path d="M-8 -9 q8 -4 16 0 l2 17 h-20z" fill="#f1f3f8"/><path d="M2 -10 q6 1 8 2 l2 16 h-8z" fill="#000" fill-opacity=".07"/><rect x="-4" y="-4" width="8" height="6" rx="1.5" fill="${c}"/><path d="M-8 -7 l-5 13 M8 -7 l5 13" stroke="#f1f3f8" stroke-width="4.5" stroke-linecap="round"/><circle cx="-13" cy="7.5" r="2.7" fill="${c}"/><circle cx="13" cy="7.5" r="2.7" fill="${c}"/><circle cy="-17" r="10.5" fill="#f6f8fc" stroke="#cfd5e6"/><ellipse cy="-16.5" rx="7.2" ry="6" fill="#1e2a5e"/><ellipse cx="-2.5" cy="-19" rx="2.6" ry="1.6" fill="#fff" fill-opacity=".7"/><path d="M-2 -14 q2 1.5 4 0" stroke="#7aa2ff" stroke-width="1" fill="none"/>`,
+ alien:(c,o)=>`${sh(27,12)}<path d="M-4 8 v17 M4 8 v17" stroke="${c}" stroke-width="4.5" stroke-linecap="round"/><path d="M-6 25 h-3 M6 25 h3" stroke="#3b2a63" stroke-width="3.5" stroke-linecap="round"/><path d="M-8 -3 q8 -4 16 0 l2 11 h-20z" fill="#c9d0e6"/><path d="M-8 -3 l-5 11 M8 -3 l5 11" stroke="#c9d0e6" stroke-width="4" stroke-linecap="round"/><circle cx="-13" cy="9" r="2.2" fill="${c}"/><circle cx="13" cy="9" r="2.2" fill="${c}"/><path d="M-4 -24 q-3 -5 -7 -6 M4 -24 q3 -5 7 -6" stroke="${c}" stroke-width="2" fill="none"/><circle cx="-11" cy="-31" r="2.6" fill="#ffd93b"/><circle cx="11" cy="-31" r="2.6" fill="#ffd93b"/><ellipse cy="-14" rx="11" ry="12" fill="${c}"/><ellipse cx="-5" cy="-14" rx="3.6" ry="5" fill="#111" transform="rotate(12 -5 -14)"/><ellipse cx="5" cy="-14" rx="3.6" ry="5" fill="#111" transform="rotate(-12 5 -14)"/><circle cx="-6" cy="-16" r="1.2" fill="#fff"/><circle cx="4" cy="-16" r="1.2" fill="#fff"/><path d="M-3 -6 q3 3 6 0" stroke="#111" stroke-width="1.2" fill="none"/>`,
+ planet:(c,o)=>`${o.v<.5?'<path d="M-26 0 a26 6 0 0 1 52 0" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3" transform="rotate(-18)"/>':''}<circle r="15" fill="${c}"/><path d="M-14 -4 q14 5 28 0 M-15 4 q15 6 30 0" stroke="#fff" stroke-opacity=".28" stroke-width="2.4" fill="none"/><circle r="15" fill="url(#pshade)"/>${o.v<.5?'<path d="M-26 0 a26 6 0 0 0 52 0" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3" transform="rotate(-18)"/>':''}`,
+ rocket:c=>`<path d="M-8 2 l-9 11 v-14 q1 -6 9 -9z" fill="${c}"/><path d="M8 2 l9 11 v-14 q-1 -6 -9 -9z" fill="${c}"/><path d="M0 -26 q11 9 9 30 h-18 q-2 -21 9 -30z" fill="#f4f6fb"/><path d="M0 -26 q11 9 9 30 h-6 q3 -17 -3 -30z" fill="#000" fill-opacity=".08"/><path d="M0 -26 q6 5 8 13 h-16 q2 -8 8 -13z" fill="${c}"/><circle cy="-4" r="5" fill="#9fd8ff" stroke="#8a93a8" stroke-width="2"/><circle cx="-1.5" cy="-5.5" r="1.5" fill="#fff"/><rect x="-5" y="4" width="10" height="4" fill="#8a93a8"/><path d="M-4 8 q4 16 8 0 q-4 4 -8 0z" fill="#ffb703"/><path d="M-2 8 q2 8 4 0z" fill="#ff5d2e"/>`,
+ ufo:c=>`<path d="M-10 8 L-20 26 H20 L10 8z" fill="#fff6a8" fill-opacity=".2"/><path d="M-12 -3 q0 -14 12 -14 q12 0 12 14z" fill="#bfe9ff" fill-opacity=".85" stroke="#fff" stroke-opacity=".8"/><circle cy="-6" r="4.5" fill="#7bd96a"/><circle cx="-1.6" cy="-6.5" r="1" fill="#111"/><circle cx="1.6" cy="-6.5" r="1" fill="#111"/><ellipse rx="24" ry="7" fill="#aeb6cc"/><ellipse cy="-1.5" rx="23" ry="4.5" fill="#fff" fill-opacity=".28"/><path d="M-23 1 q23 13 46 0 v2 q-23 14 -46 0z" fill="${c}"/><g fill="#ffe14d"><circle cx="-14" cy="4" r="1.8"/><circle cx="0" cy="6" r="1.8"/><circle cx="14" cy="4" r="1.8"/></g>`,
+ satellite:c=>`<rect x="-5" y="-6" width="10" height="12" rx="2" fill="${c}"/><path d="M-5 0 h10 M0 -6 v12" stroke="#000" stroke-opacity=".2"/><g fill="#2d5fb8" stroke="#9fc1ff" stroke-width=".8"><rect x="-30" y="-5" width="21" height="10"/><rect x="9" y="-5" width="21" height="10"/></g><path d="M-23 -5 v10 M-16 -5 v10 M16 -5 v10 M23 -5 v10 M-30 0 h21 M9 0 h21" stroke="#9fc1ff" stroke-width=".6"/><path d="M-9 0 h4 M5 0 h4" stroke="#aeb6cc" stroke-width="1.6"/><path d="M-5 -9 q5 -8 10 0z" fill="#d9dde8"/><path d="M0 -9 v-5" stroke="#aeb6cc"/><circle cy="-15" r="1.5" fill="#ff5d5d"/>`,
+ star:c=>`<circle r="9" fill="${c}" fill-opacity=".18"/><path d="M0 -9 Q1.5 -1.5 9 0 Q1.5 1.5 0 9 Q-1.5 1.5 -9 0 Q-1.5 -1.5 0 -9z" fill="${c}"/><circle r="1.6" fill="#fff"/>`,
+ comet:(c,o)=>`<g transform="scale(${o.fl} 1)"><path d="M8 0 L-36 -7 L-36 7z" fill="#fff" fill-opacity=".2"/><path d="M8 0 L-24 -4 L-24 4z" fill="#bfe9ff" fill-opacity=".4"/><circle r="7" fill="#fff6c9"/><circle cx="-1.5" cy="-1.5" r="3" fill="#fff"/></g>`,
+ asteroid:c=>`<path d="M-8 -3 L-4 -9 L4 -8 L9 -2 L7 6 L-2 9 L-9 4z" fill="${c}"/><path d="M-4 -9 L4 -8 L9 -2 L1 -1z" fill="#fff" fill-opacity=".2"/><circle cx="-3" cy="3" r="2" fill="#000" fill-opacity=".25"/><circle cx="4" cy="3" r="1.3" fill="#000" fill-opacity=".25"/>`,
+ moonrock:c=>`${sh(8,11,2)}<path d="M-9 6 L-10 -2 L-3 -8 L6 -6 L11 2 L8 7z" fill="${c}"/><path d="M-3 -8 L6 -6 L11 2 L2 0z" fill="#fff" fill-opacity=".2"/><path d="M-9 6 L8 7 L11 2 L2 0 L-10 -2z" fill="#000" fill-opacity=".15"/>`,
+ flag:c=>`<ellipse cy="23" rx="8" ry="2.2" fill="#0003"/><line x1="-6" y1="-22" x2="-6" y2="22" stroke="#cfd3df" stroke-width="2.2"/><path d="M-5 -22 h20 v13 h-20z" fill="${c}"/><polygon points="${starPts(5,4,1.8)}" transform="translate(5 -15.5)" fill="#fff"/>`,
+ rover:c=>`${sh(13,22,2.5)}<rect x="-17" y="-8" width="34" height="11" rx="3" fill="${c}"/><rect x="-7" y="-16" width="14" height="8" rx="2" fill="${c}"/><rect x="-5" y="-14" width="10" height="5" rx="1" fill="#bfe9ff"/><rect x="-17" y="-2" width="34" height="2" fill="#fff" fill-opacity=".4"/><path d="M10 -16 l5 -8" stroke="#aeb6cc" stroke-width="1.6"/><circle cx="16" cy="-25" r="2.4" fill="#aeb6cc"/><g fill="#2a2d3a"><circle cx="-12" cy="6" r="6"/><circle cx="12" cy="6" r="6"/></g><g fill="#aeb6cc"><circle cx="-12" cy="6" r="2.4"/><circle cx="12" cy="6" r="2.4"/></g>`,
+
+ // --- farm ---
+ barn:c=>`${sh(29,34,4)}<path d="M-28 28 V-6 L-22 -18 Q-14 -28 0 -30 Q14 -28 22 -18 L28 -6 V28z" fill="${c}"/><path d="M10 28 V-29 Q22 -26 22 -18 L28 -6 V28z" fill="#000" fill-opacity=".1"/><path d="M-28 -6 L-22 -18 Q-14 -28 0 -30 Q14 -28 22 -18 L28 -6" fill="none" stroke="#4a2a1a" stroke-width="3"/><rect x="-11" y="6" width="22" height="22" fill="#fff" stroke="#e8dcc8" stroke-width="1.5"/><path d="M-11 6 L11 28 M11 6 L-11 28" stroke="${c}" stroke-width="2"/><rect x="-6" y="-17" width="12" height="9" fill="#3b2a1a"/><path d="M-6 -17 L6 -8 M6 -17 L-6 -8" stroke="#fff" stroke-width="1.4"/>`,
+ silo:c=>`${sh(26,13,3)}<rect x="-9" y="-22" width="18" height="48" fill="${c}"/><path d="M-9 -22 a9 9 0 0 1 18 0z" fill="#8a93a8"/><path d="M-9 -8 h18 M-9 6 h18 M-9 18 h18" stroke="#000" stroke-opacity=".2"/><rect x="2" y="-22" width="7" height="48" fill="#000" fill-opacity=".1"/>`,
+ cow:(c,o)=>`<g transform="scale(${o.fl} 1)">${sh(16,22)}<g fill="#f4f4f4" stroke="#0002" stroke-width=".6"><rect x="-14" y="5" width="4.5" height="11" rx="1.5"/><rect x="-8" y="5" width="4.5" height="11" rx="1.5"/><rect x="5" y="5" width="4.5" height="11" rx="1.5"/><rect x="11" y="5" width="4.5" height="11" rx="1.5"/></g><g fill="#333"><rect x="-14" y="14" width="4.5" height="2.5" rx="1"/><rect x="-8" y="14" width="4.5" height="2.5" rx="1"/><rect x="5" y="14" width="4.5" height="2.5" rx="1"/><rect x="11" y="14" width="4.5" height="2.5" rx="1"/></g><path d="M19 -4 q5 4 3 12" stroke="#888" stroke-width="1.6" fill="none"/><ellipse rx="19" ry="11" fill="#fff" stroke="#0002" stroke-width=".8"/><path d="M-8 -9 q6 -2 8 4 q-4 6 -9 3z" fill="${c}"/><ellipse cx="9" cy="1" rx="5" ry="4" fill="${c}"/><ellipse cx="-12" cy="3" rx="3" ry="4" fill="${c}"/><ellipse cx="3" cy="11" rx="4" ry="2.4" fill="#ffc2c9"/><ellipse cx="-22" cy="-3" rx="8" ry="7" fill="#fff" stroke="#0002" stroke-width=".8"/><ellipse cx="-27" cy="0" rx="4.5" ry="3.5" fill="#ffc2c9"/><circle cx="-18" cy="-6" r="1.4" fill="#222"/><path d="M-22 -9 q-1 -5 -4 -5 M-18 -9 q1 -5 4 -5" stroke="#e8e0c8" stroke-width="2" fill="none"/><ellipse cx="-16" cy="-3" rx="3" ry="1.8" fill="${c}"/></g>`,
+ pig:(c,o)=>`<g transform="scale(${o.fl} 1)">${sh(15,17)}<g stroke="${c}" stroke-width="3.6" stroke-linecap="round"><path d="M-9 7 v7 M-3 8 v6 M5 8 v6 M10 7 v7"/></g><path d="M14 -2 q6 -2 4 -6 q-4 -1 -2 3" stroke="${c}" stroke-width="1.8" fill="none"/><ellipse rx="14" ry="9" fill="${c}"/><ellipse cx="-2" cy="-4" rx="8" ry="3" fill="#fff" fill-opacity=".25"/><circle cx="-14" cy="-1" r="7.5" fill="${c}"/><path d="M-14 -7 l3 -6 l4 5z" fill="${c}" stroke="#0002"/><ellipse cx="-20" cy="1" rx="3.6" ry="3" fill="#fff" fill-opacity=".3"/><ellipse cx="-20" cy="1" rx="3.6" ry="3" fill="#000" fill-opacity=".1"/><circle cx="-21" cy="1" r=".8" fill="#522"/><circle cx="-19" cy="1" r=".8" fill="#522"/><circle cx="-14" cy="-3" r="1.3" fill="#222"/></g>`,
+ sheep:(c,o)=>`<g transform="scale(${o.fl} 1)">${sh(16,17)}<g stroke="#4a3b3b" stroke-width="3" stroke-linecap="round"><path d="M-8 8 v8 M-3 9 v7 M5 9 v7 M10 8 v8"/></g><g fill="${c}" stroke="#0002" stroke-width=".8"><circle cx="-9" cy="0" r="8"/><circle cx="0" cy="-4" r="9"/><circle cx="9" cy="0" r="8"/><circle cx="-4" cy="5" r="8"/><circle cx="5" cy="5" r="8"/></g><ellipse cx="-17" cy="-1" rx="5" ry="6" fill="#4a3b3b"/><ellipse cx="-12" cy="-6" rx="3" ry="1.6" fill="#4a3b3b"/><circle cx="-18" cy="-3" r="1.2" fill="#fff"/></g>`,
+ chicken:(c,o)=>`<g transform="scale(${o.fl} 1)"><path d="M-0 7 v5 M4 7 v5 M-2 12 h4 M2 12 h4" stroke="#ff9f1c" stroke-width="1.6" fill="none"/><path d="M6 -2 l8 -8 l-1 10z" fill="${c}" stroke="#0002" stroke-width=".6"/><ellipse cx="1" cy="1" rx="9" ry="7" fill="${c}" stroke="#0002" stroke-width=".6"/><path d="M-1 0 q6 -2 8 4 q-6 3 -8 -4z" fill="#000" fill-opacity=".12"/><circle cx="-8" cy="-6" r="4.2" fill="${c}" stroke="#0002" stroke-width=".6"/><path d="M-10 -10 q1 -3 2 0 q1 -3 2 0 q1 -2 2 1z" fill="#e63946"/><path d="M-12 -6 l-4 1.5 l4 1.5z" fill="#ff9f1c"/><circle cx="-8.5" cy="-6.5" r="1" fill="#222"/><path d="M-11 -3 q1 3 2 0z" fill="#e63946"/></g>`,
+ haystack:c=>`${sh(15,20)}<path d="M-18 14 q-1 -30 18 -30 q19 0 18 30z" fill="${c}"/><path d="M2 -16 q18 0 18 30 h-14 q4 -14 -4 -30z" fill="#000" fill-opacity=".08"/><path d="M-12 6 q4 -8 8 -2 M2 -2 q5 -6 9 0 M-8 -8 q4 -4 6 0 M-14 12 h28" stroke="#000" stroke-opacity=".22" fill="none" stroke-width="1.3"/>`,
+ tractor:(c,o)=>`<g transform="scale(${o.fl} 1)">${sh(19,26)}<rect x="-24" y="-6" width="22" height="13" rx="3" fill="${c}"/><rect x="-17" y="-16" width="3" height="10" fill="#555"/><path d="M-2 7 V-20 h16 q3 0 3 3 V7z" fill="${c}"/><path d="M1 -17 h11 q2 0 2 2 V-3 H1z" fill="#bfe9ff"/><rect x="-1" y="-22" width="20" height="3" rx="1.5" fill="#333"/><path d="M-24 -1 h22" stroke="#000" stroke-opacity=".2"/><circle cx="10" cy="8" r="11" fill="#2a2d3a"/><circle cx="10" cy="8" r="5" fill="#d9dde8"/><circle cx="-17" cy="12" r="6.5" fill="#2a2d3a"/><circle cx="-17" cy="12" r="2.8" fill="#d9dde8"/></g>`,
+ sunflower:c=>`<ellipse cy="26" rx="5" ry="1.6" fill="#0003"/><line y1="5" y2="26" stroke="#2f8f3a" stroke-width="3"/><path d="M0 18 q-9 -6 -10 -1 q5 6 10 1z" fill="#3fa34d"/>${Array.from({length:12},(_,i)=>`<ellipse cy="-9" rx="2.8" ry="5.5" fill="${c}" stroke="#0002" stroke-width=".4" transform="rotate(${i*30})"/>`).join('')}<circle r="5" fill="#6b3f1d"/><circle r="3" fill="#4a2a12"/>`,
+
+ // --- beach ---
+ umbrella:c=>`<path d="M2 -14 L-3 26" stroke="#8b5a2b" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="-3" cy="27" rx="8" ry="2" fill="#0003"/>${[0,1,2,3,4].map(i=>{const a=-26+i*10.8,b=a+10.8;return `<path d="M2 -28 L${fx(a)} -6 Q${fx((a+b)/2)} -11 ${fx(b)} -6z" fill="${i%2?'#fff':c}" stroke="#0002" stroke-width=".8"/>`}).join('')}<circle cx="2" cy="-28.5" r="1.8" fill="#8b5a2b"/>`,
+ sandcastle:c=>`${sh(19,26,3)}<rect x="-26" y="-4" width="15" height="22" fill="#ecd196" stroke="#c9a46a" stroke-width=".8"/><rect x="11" y="-4" width="15" height="22" fill="#ecd196" stroke="#c9a46a" stroke-width=".8"/><rect x="-10" y="-14" width="20" height="32" fill="#f0d89f" stroke="#c9a46a" stroke-width=".8"/><path d="M-26 -4 v-4 h3.6 v4 h3.6 v-4 h3.6 v4 M11 -4 v-4 h3.6 v4 h3.6 v-4 h3.6 v4 M-10 -14 v-4 h4.4 v4 h4.4 v-4 h4.4 v4 h4.4 v-4 h0z" fill="#ecd196" stroke="#c9a46a" stroke-width=".8"/><path d="M-4 18 v-8 a4 4 0 0 1 8 0 v8z" fill="#a98450"/><line x1="0" y1="-18" x2="0" y2="-32" stroke="#8b5a2b" stroke-width="1.4"/><path d="M0 -32 l14 4.5 l-14 4.5z" fill="${c}"/><line x1="-18" y1="-8" x2="-18" y2="-18" stroke="#8b5a2b" stroke-width="1.2"/><path d="M-18 -18 l9 3 l-9 3z" fill="${c}"/><line x1="18" y1="-8" x2="18" y2="-18" stroke="#8b5a2b" stroke-width="1.2"/><path d="M18 -18 l9 3 l-9 3z" fill="${c}"/><path d="M-22 4 h7 M15 4 h7 M-6 -6 h12" stroke="#c9a46a" stroke-width=".8"/>`,
+ sailboat:(c,o)=>`<g transform="scale(${o.fl} 1)"><path d="M-18 8 h36 l-6 8 h-24z" fill="#8b5a2b"/><path d="M-18 8 h36" stroke="#5a3818"/><line x1="0" y1="-24" x2="0" y2="8" stroke="#5a3818" stroke-width="2"/><path d="M2 -24 L16 4 H2z" fill="${c}"/><path d="M-2 -18 L-14 4 H-2z" fill="#fff" stroke="#0002"/><path d="M0 -24 l-7 2 l7 2z" fill="#ffd93b"/><path d="M-24 17 q4 -3 8 0 t8 0 t8 0 t8 0 t8 0" stroke="#fff" stroke-width="1.6" fill="none" stroke-opacity=".85"/></g>`,
+ beachball:c=>`${sh(11,9,2.2)}<circle r="10" fill="#fff"/><path d="M0 0 L0 -10 A10 10 0 0 1 8.66 -5z" fill="${c}"/><path d="M0 0 L8.66 5 A10 10 0 0 1 0 10z" fill="#ffd93b"/><path d="M0 0 L-8.66 5 A10 10 0 0 1 -8.66 -5z" fill="#3f7be8"/><path d="M0 0 L0 10 A10 10 0 0 1 -8.66 5z" fill="${c}"/><circle r="10" fill="none" stroke="#0003"/><circle cx="-3.5" cy="-3.5" r="3" fill="#fff" fill-opacity=".55"/>`,
+ palm:c=>`<ellipse cy="45" rx="22" ry="4" fill="#0003"/><path d="M0 44 q-8 -24 3 -48" stroke="#9a6b3a" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M0 44 q-8 -24 3 -48" stroke="#6b4423" stroke-width="7" fill="none" stroke-dasharray="2 5" opacity=".45"/>${[-160,-125,-90,-55,-20,20,160].map(a=>`<g transform="translate(3 -4) rotate(${a})"><path d="M0 0 q14 -12 30 2 q-15 -5 -30 -2z" fill="${c}" stroke="#0003" stroke-width=".8"/></g>`).join('')}<circle cx="2" cy="-1" r="3" fill="#6b4423"/><circle cx="7" cy="1" r="3" fill="#6b4423"/>`,
+ towel:c=>`<path d="M-18 -8 h34 l6 16 h-34z" fill="${c}"/><path d="M-8 -8 l6 16 M2 -8 l6 16 M12 -8 l6 16" stroke="#fff" stroke-opacity=".75" stroke-width="3"/><path d="M-18 -8 h34 l6 16 h-34z" fill="none" stroke="#0003"/>`,
+ bucket:c=>`${sh(9,11,2)}<path d="M-8 -6 h16 l-3 14 h-10z" fill="${c}"/><ellipse cy="-6" rx="8" ry="2" fill="#000" fill-opacity=".25"/><path d="M-8 -6 q8 -14 16 0" stroke="#666" stroke-width="1.4" fill="none"/><path d="M13 9 l3 -15" stroke="#8b5a2b" stroke-width="2"/><rect x="11" y="6" width="7" height="6" rx="2" fill="${c}"/>`,
+ surfboard:c=>`<g transform="rotate(8)"><ellipse cy="29" rx="9" ry="2" fill="#0003"/><path d="M0 -28 Q10 -10 8 14 Q6 26 0 28 Q-6 26 -8 14 Q-10 -10 0 -28z" fill="${c}"/><path d="M0 -26 V26" stroke="#fff" stroke-width="2.5" stroke-opacity=".8"/><path d="M-5 6 h10" stroke="#fff" stroke-opacity=".5"/></g>`,
+
+ // --- city ---
+ building:(c,o)=>{
+   const hw=22+o.v*7,top=-(22+o.v*30),bot=(205-o.y)/o.s,cols=Math.floor(hw*2/12),sx=-cols*6+1.5,seed=Math.floor(o.v*997);
+   let w='';
+   for(let j=0;top+9+j*15<bot-20;j++)for(let i=0;i<cols;i++){const lit=((i*7+j*13+seed)%5===0);w+=`<rect x="${sx+i*12}" y="${top+9+j*15}" width="8" height="9" rx="1" fill="${lit?'#ffe58a':'#bfe3ff'}" stroke="#0003" stroke-width=".6"/>`}
+   return `<rect x="${-hw}" y="${top}" width="${hw*2}" height="${bot-top}" fill="${c}"/><rect x="${hw-8}" y="${top}" width="8" height="${bot-top}" fill="#000" fill-opacity=".1"/><rect x="${-hw-2}" y="${top-4}" width="${hw*2+4}" height="5" fill="#000" fill-opacity=".22"/>${w}<rect x="-5" y="${bot-14}" width="10" height="14" rx="1" fill="#5a4a3a"/><rect x="${-hw*.5}" y="${top-12}" width="7" height="8" fill="#8a93a8"/>`;
+ },
+ car:(c,o)=>`<g transform="scale(${o.fl} 1)">${sh(13,23,2.8)}<rect x="-22" y="-4" width="44" height="12" rx="4" fill="${c}"/><path d="M-12 -4 l4 -9 h14 l7 9z" fill="${c}"/><path d="M-9 -5 l3 -7 h6 v7z M2 -5 v-7 h4 l5 7z" fill="#cfeaff"/><rect x="-22" y="3" width="44" height="5" rx="2" fill="#000" fill-opacity=".14"/><circle cx="-12" cy="8" r="5.5" fill="#222"/><circle cx="12" cy="8" r="5.5" fill="#222"/><circle cx="-12" cy="8" r="2.2" fill="#c9ced9"/><circle cx="12" cy="8" r="2.2" fill="#c9ced9"/><rect x="19" y="-1" width="3.4" height="3.4" rx="1" fill="#ffe28a"/><rect x="-22.4" y="-1" width="3" height="3.4" rx="1" fill="#e63946"/></g>`,
+ bus:(c,o)=>`<g transform="scale(${o.fl} 1)">${sh(13,36,3)}<rect x="-34" y="-14" width="68" height="26" rx="5" fill="${c}"/><g fill="#cfeaff">${[0,1,2,3,4].map(i=>`<rect x="${-30+i*12.5}" y="-10" width="9" height="9" rx="1.5"/>`).join('')}<rect x="23" y="-10" width="9" height="14" rx="1.5"/></g><rect x="-34" y="4" width="68" height="3" fill="#fff" fill-opacity=".5"/><rect x="-34" y="8" width="68" height="4" rx="2" fill="#000" fill-opacity=".14"/><circle cx="-20" cy="12" r="6" fill="#222"/><circle cx="20" cy="12" r="6" fill="#222"/><circle cx="-20" cy="12" r="2.4" fill="#c9ced9"/><circle cx="20" cy="12" r="2.4" fill="#c9ced9"/><rect x="31" y="3" width="3.4" height="3.4" rx="1" fill="#ffe28a"/></g>`,
+ tlight:(c,o)=>{const k=Math.floor(o.v*3);return `<rect x="-2" y="-8" width="4" height="34" fill="#555"/><rect x="-8" y="-28" width="16" height="34" rx="4" fill="#222"/>${[0,1,2].map(i=>`<circle cy="${-21+i*10}" r="4.4" fill="${i===k?c:'#3a3a3a'}"/>`).join('')}<circle cy="${-21+k*10}" r="7" fill="${c}" fill-opacity=".3"/><rect x="-4" y="24" width="8" height="3" fill="#444"/>`},
+ lamp:c=>`<rect x="-1.8" y="-18" width="3.6" height="44" fill="#444a5a"/><path d="M0 -18 q0 -8 8 -8" stroke="#444a5a" stroke-width="3" fill="none"/><path d="M3 -26 h10 l-2 5 h-6z" fill="#444a5a"/><circle cx="8" cy="-19" r="12" fill="${c}" fill-opacity=".32"/><ellipse cx="8" cy="-20" rx="6" ry="3.6" fill="${c}"/><rect x="-4" y="22" width="8" height="4" fill="#444a5a"/>`,
+ hydrant:c=>`<rect x="-5" y="-4" width="10" height="16" rx="3" fill="${c}"/><path d="M-5 -4 a5 5 0 0 1 10 0z" fill="${c}"/><rect x="-8" y="0" width="16" height="4" rx="2" fill="${c}"/><rect x="-6" y="11" width="12" height="3" fill="#000" fill-opacity=".3"/><circle cy="-8" r="1.8" fill="#bbb"/>`,
+ mailbox:c=>`<rect x="-2" y="4" width="4" height="14" fill="#555"/><rect x="-8" y="-8" width="16" height="12" rx="6" fill="${c}"/><rect x="-5" y="-3" width="10" height="2" rx="1" fill="#000" fill-opacity=".3"/><rect x="6" y="-12" width="2" height="8" fill="#e63946"/>`,
+ bike:c=>`<g fill="none" stroke="#222" stroke-width="2"><circle cx="-11" cy="6" r="8"/><circle cx="11" cy="6" r="8"/></g><path d="M-11 6 L-4 -5 L6 -5 L11 6 M-4 -5 L0 6 L6 -5 M-11 6 L0 6" stroke="${c}" stroke-width="2.4" fill="none" stroke-linejoin="round"/><path d="M-8 -7 h7" stroke="#222" stroke-width="2.6"/><path d="M6 -5 l-2 -4 h5" stroke="#222" stroke-width="2" fill="none"/>`,
+ dog:(c,o)=>`<g transform="scale(${o.fl} 1)">${sh(10,13,2)}<g fill="${c}"><rect x="-8" y="3" width="3.4" height="7" rx="1.4"/><rect x="-3" y="3" width="3.4" height="7" rx="1.4"/><rect x="4" y="3" width="3.4" height="7" rx="1.4"/><rect x="8" y="3" width="3.4" height="7" rx="1.4"/></g><path d="M11 -2 q6 -4 5 -10" stroke="${c}" stroke-width="2.6" fill="none" stroke-linecap="round"/><ellipse rx="12" ry="6.5" fill="${c}"/><ellipse cx="-2" cy="-3" rx="7" ry="2.4" fill="#fff" fill-opacity=".22"/><circle cx="-12" cy="-6" r="5.5" fill="${c}"/><ellipse cx="-16.5" cy="-4" rx="3.2" ry="2.6" fill="${c}"/><ellipse cx="-16.5" cy="-4" rx="3.2" ry="2.6" fill="#fff" fill-opacity=".2"/><circle cx="-19" cy="-4.6" r="1.1" fill="#222"/><circle cx="-12.5" cy="-7.5" r="1.1" fill="#222"/><ellipse cx="-8.5" cy="-8" rx="2.2" ry="3.6" fill="#000" fill-opacity=".35"/></g>`
+};
+// ---------- the settings ----------
+const THEMES=[
+ {sky:'#bfe6ff',h1:'#7ccf6a',h2:'#66bb55',g:'#8fd96e'},
+ {sky:'#ffe3c2',h1:'#9bd36a',h2:'#7fbf55',g:'#a6dc72'},
+ {sky:'#d9d4ff',h1:'#6fcf8a',h2:'#58b878',g:'#86dc9a'},
+ {sky:'#c8f1e8',h1:'#8fd06a',h2:'#74bb55',g:'#9ddc78'}
+];
+const sunSide=(R,rand)=>R()<.5?rand(45,90):rand(310,355);
+const SUNGLOW='<radialGradient id="gl"><stop offset="0" stop-color="#fff6a8" stop-opacity=".9"/><stop offset="1" stop-color="#fff6a8" stop-opacity="0"/></radialGradient>';
+const sun=(x,r=24)=>`<circle cx="${x.toFixed(0)}" cy="55" r="${r*2.6}" fill="url(#gl)"/><circle cx="${x.toFixed(0)}" cy="55" r="${r}" fill="#ffd93b"/>`;
+
+const SC={
+ country:{
+  name:'Countryside',emoji:'🌳',pv:'',
+  say:['Hi, my name is Sam and I am a wizard.','Hello! My name is Mia and I love cake.','Look at me! I can jump really high!','I am Leo and I have a pet dragon.','Wow! This is the best day ever!','My name is Ava and I can fly a kite.','Yum! I just ate ten big strawberries!','Hi, I am Max and I love to splash!','Can you spot all the differences?','Hello! I am Zoe and I am a pirate.','I found a tiny ladybug in the grass!','My name is Ben and I am a knight.'],
+  lay:[['person',3],['house',R=>R()<.5?2:1],['tree',4],['cloud',4],['balloon',3],['kite',2],['bird',4],['butterfly',3],['flower',8],['mushroom',4],['ladybug',3]],
+  setup(R,rand,pick){const sunX=sunSide(R,rand);return{th:pick(THEMES),sunX,far:Array.from({length:15},(_,i)=>({x:i*28+rand(-6,6),r:rand(9,17)})),tufts:Array.from({length:45},()=>({x:rand(5,395),y:rand(232,296)})),obst:[{x:sunX,y:55,f:44}]}},
+  bg(w){const th=w.th;return `<defs>${SUNGLOW}<linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".75"/></linearGradient><linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></linearGradient></defs><rect width="400" height="300" fill="${th.sky}"/><rect width="400" height="230" fill="url(#sk)"/>${sun(w.sunX)}${w.far.map(f=>`<circle cx="${f.x.toFixed(0)}" cy="182" r="${f.r.toFixed(0)}" fill="#2f7d3a" opacity=".5"/>`).join('')}<ellipse cx="100" cy="238" rx="190" ry="62" fill="${th.h1}"/><ellipse cx="340" cy="238" rx="170" ry="50" fill="${th.h2}"/><rect y="224" width="400" height="76" fill="${th.g}"/><ellipse cx="100" cy="238" rx="190" ry="62" fill="url(#sh)"/><rect y="224" width="400" height="76" fill="url(#sh)"/>${w.tufts.map(t=>`<path d="M${t.x.toFixed(0)} ${t.y.toFixed(0)} l-2 -5 m2 5 v-6 m0 6 l2 -5" stroke="${th.h2}" stroke-width="1.3" fill="none"/>`).join('')}`}
+ },
+
+ underwater:{
+  name:'Under the sea',emoji:'🐠',pv:'',
+  say:['Blub blub! I am a deep sea explorer.','Hi! My name is Finn and I love fish.','Look! A shiny treasure chest!','I am Marina and I can hold my breath.','Wow, the coral is so colourful!','Hello! I am Kai and I found a shell.','Can you see the big turtle?','My name is Pearl and I love to dive.'],
+  lay:[['diver',3],['fish',8],['jelly',2],['bubbles',4],['starfish',3],['crab',2],['seahorse',1],['turtle',1],['coral',4],['seaweed',5],['sub',1],['chest',1],['shell',2]],
+  setup(R,rand,pick){return{
+   rays:Array.from({length:5},()=>rand(0,340)),
+   rocks:Array.from({length:5},()=>({x:rand(10,390).toFixed(0),w:rand(30,70).toFixed(0),h:rand(14,28).toFixed(0)})),
+   ff:Array.from({length:7},()=>({x:rand(20,380).toFixed(0),y:rand(40,190).toFixed(0),s:rand(.8,1.6).toFixed(2),d:R()<.5?-1:1})),
+   bub:Array.from({length:16},()=>({x:rand(5,395).toFixed(0),y:rand(10,230).toFixed(0),r:rand(1.5,4.5).toFixed(1)})),
+   peb:Array.from({length:26},()=>({x:rand(5,395).toFixed(0),y:rand(246,296).toFixed(0),r:rand(1.5,4).toFixed(1)})),
+   obst:[]}},
+  bg(w){return `<defs><linearGradient id="wt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5fd0f5"/><stop offset=".55" stop-color="#1f93d6"/><stop offset="1" stop-color="#0d5a99"/></linearGradient><linearGradient id="sd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".15"/><stop offset="1" stop-color="#000" stop-opacity=".14"/></linearGradient></defs><rect width="400" height="300" fill="url(#wt)"/>${w.rays.map(x=>`<polygon points="${x.toFixed(0)},0 ${(x+26).toFixed(0)},0 ${(x+80).toFixed(0)},250 ${(x+30).toFixed(0)},250" fill="#fff" fill-opacity=".07"/>`).join('')}${w.rocks.map(r=>`<ellipse cx="${r.x}" cy="238" rx="${r.w}" ry="${r.h}" fill="#0f5f9c" fill-opacity=".55"/>`).join('')}${w.ff.map(f=>`<g transform="translate(${f.x} ${f.y}) scale(${f.s*f.d} ${f.s})" opacity=".3"><path d="M-8 0 q4 -6 10 -2 l6 -4 v12 l-6 -4 q-6 4 -10 -2z" fill="#07406f"/></g>`).join('')}${w.bub.map(b=>`<circle cx="${b.x}" cy="${b.y}" r="${b.r}" fill="none" stroke="#fff" stroke-opacity=".35"/>`).join('')}<path d="M0 238 q100 -16 200 -2 t200 -6 V300 H0z" fill="#ecd392"/><path d="M0 268 q120 -18 240 -2 t160 -6 V300 H0z" fill="#e0c27a" fill-opacity=".85"/><rect y="232" width="400" height="68" fill="url(#sd)"/>${w.peb.map(p=>`<ellipse cx="${p.x}" cy="${p.y}" rx="${p.r}" ry="${(p.r*.6).toFixed(1)}" fill="#b99a5e" fill-opacity=".55"/>`).join('')}`}
+ },
+
+ space:{
+  name:'Outer space',emoji:'🚀',pv:'',
+  say:['Hello! I come from the planet Zog.','I am Captain Nova and I fly rockets.','Wow! The stars are so bright!','Beep boop! My name is Zed.','I can jump super high on the moon!','Take me to your leader, please.','My name is Luna and I love comets.','Houston, we have a big smile!'],
+  lay:[['astronaut',2],['alien',1],['planet',3],['rocket',2],['ufo',2],['satellite',2],['star',9],['comet',1],['asteroid',3],['moonrock',3],['flag',1],['rover',1]],
+  setup(R,rand,pick){const ex=R()<.5?rand(40,80):rand(320,360),ey=rand(40,70);return{ex,ey,
+   st:Array.from({length:90},()=>({x:rand(2,398).toFixed(0),y:rand(2,228).toFixed(0),r:rand(.5,1.4).toFixed(1),o:rand(.4,.95).toFixed(2)})),
+   nb:[{x:rand(60,340).toFixed(0),y:rand(40,140).toFixed(0)},{x:rand(60,340).toFixed(0),y:rand(40,160).toFixed(0)}],
+   cr:Array.from({length:7},()=>({x:rand(10,390).toFixed(0),y:rand(248,292).toFixed(0),rx:rand(8,20).toFixed(0),ry:rand(2.5,5).toFixed(1)})),
+   obst:[{x:ex,y:ey,f:36}]}},
+  bg(w){return `<defs><linearGradient id="sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050820"/><stop offset=".72" stop-color="#1a1250"/><stop offset="1" stop-color="#3a1c6e"/></linearGradient><radialGradient id="n1"><stop offset="0" stop-color="#b06bff" stop-opacity=".38"/><stop offset="1" stop-color="#b06bff" stop-opacity="0"/></radialGradient><radialGradient id="n2"><stop offset="0" stop-color="#3fa0ff" stop-opacity=".3"/><stop offset="1" stop-color="#3fa0ff" stop-opacity="0"/></radialGradient><radialGradient id="pshade" cx=".35" cy=".3" r=".8"><stop offset=".4" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".18"/></linearGradient></defs><rect width="400" height="300" fill="url(#sp)"/><circle cx="${w.nb[0].x}" cy="${w.nb[0].y}" r="95" fill="url(#n1)"/><circle cx="${w.nb[1].x}" cy="${w.nb[1].y}" r="85" fill="url(#n2)"/>${w.st.map(s=>`<circle cx="${s.x}" cy="${s.y}" r="${s.r}" fill="#fff" opacity="${s.o}"/>`).join('')}<circle cx="${w.ex.toFixed(0)}" cy="${w.ey.toFixed(0)}" r="26" fill="#3d8bff"/><ellipse cx="${(w.ex-8).toFixed(0)}" cy="${(w.ey-6).toFixed(0)}" rx="9" ry="6" fill="#5fcf6a"/><ellipse cx="${(w.ex+9).toFixed(0)}" cy="${(w.ey+8).toFixed(0)}" rx="7" ry="5" fill="#5fcf6a"/><path d="M${(w.ex-20).toFixed(0)} ${(w.ey+12).toFixed(0)} q20 6 40 -4" stroke="#fff" stroke-opacity=".5" stroke-width="3" fill="none"/><circle cx="${w.ex.toFixed(0)}" cy="${w.ey.toFixed(0)}" r="26" fill="url(#pshade)"/><ellipse cx="90" cy="262" rx="240" ry="48" fill="#8f95ad"/><ellipse cx="350" cy="258" rx="200" ry="36" fill="#7e84a0"/><rect y="238" width="400" height="62" fill="#9aa0ba"/><rect y="228" width="400" height="72" fill="url(#mg)"/>${w.cr.map(c=>`<ellipse cx="${c.x}" cy="${c.y}" rx="${c.rx}" ry="${c.ry}" fill="#767c97"/><ellipse cx="${c.x}" cy="${(c.y-1)}" rx="${c.rx}" ry="${c.ry}" fill="none" stroke="#b9bfd6" stroke-opacity=".6"/>`).join('')}`}
+ },
+
+ farm:{
+  name:'On the farm',emoji:'🐄',pv:'farm',ys:{person:[222,262],cow:[224,268],pig:[228,270],sheep:[228,270],chicken:[242,286],haystack:[228,268],tractor:[236,270],sunflower:[216,262]},
+  say:['Moo! Good morning from the farm.','Hi! I am Farmer Joe and I love cows.','I just picked ten big apples!','My name is Ruby and I feed the chickens.','The sunflowers are so tall today!','Hello! I am Tom and I drive a tractor.','Oink oink! Time for breakfast!','I found a fresh egg this morning!'],
+  lay:[['person',3],['barn',1],['silo',1],['tree',3],['cow',2],['pig',1],['sheep',2],['chicken',3],['haystack',1],['tractor',1],['sunflower',3],['cloud',3],['bird',3],['butterfly',2],['flower',3],['ladybug',2]],
+  setup(R,rand,pick){const sunX=sunSide(R,rand);return{sunX,obst:[{x:sunX,y:55,f:44}]}},
+  bg(w){let fence='<rect y="210" width="400" height="3" fill="#d9b680"/><rect y="217" width="400" height="3" fill="#d9b680"/>';for(let x=6;x<400;x+=22)fence+=`<rect x="${x}" y="205" width="4" height="19" fill="#c9a06a"/>`;let rows='';for(let i=0;i<13;i++)rows+=`<path d="M${(200+(i-6)*8)} 224 L${(200+(i-6)*66)} 300" stroke="#8cc455" stroke-width="5" opacity=".45" fill="none"/>`;return `<defs>${SUNGLOW}<linearGradient id="fm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc8ff"/><stop offset=".7" stop-color="#e2f5ff"/></linearGradient></defs><rect width="400" height="300" fill="url(#fm)"/>${sun(w.sunX)}<ellipse cx="80" cy="205" rx="200" ry="40" fill="#8dce6e"/><ellipse cx="330" cy="208" rx="190" ry="34" fill="#7bbd5c"/><rect y="206" width="400" height="94" fill="#a6d96a"/>${rows}${fence}`}
+ },
+
+ beach:{
+  name:'At the beach',emoji:'🏖️',pv:'beach',ys:{person:[226,268],umbrella:[218,262],sandcastle:[240,272],shell:[256,292],starfish:[250,290],crab:[252,290],bucket:[250,288],beachball:[238,286],towel:[250,286]},
+  pal:{bird:['#ffffff','#f1f4f8','#fff2d8']},
+  say:['Hi! I am Mia and I love the sea.','Let us build a big sandcastle!','Splash! The water is so cool!','My name is Ali and I found a shell.','Look at that boat sailing by!','I am wearing my sun hat today.','Can you see the little crab?','Ice cream for everyone, please!'],
+  lay:[['person',3],['umbrella',2],['sandcastle',1],['crab',2],['starfish',3],['shell',4],['bird',4],['sailboat',2],['beachball',2],['palm',2],['towel',2],['bucket',2],['surfboard',1],['cloud',3],['kite',1]],
+  setup(R,rand,pick){const sunX=sunSide(R,rand);return{sunX,isl:rand(60,340),
+   wv:Array.from({length:22},()=>({x:rand(4,380).toFixed(0),y:rand(146,206).toFixed(0)})),
+   sd:Array.from({length:44},()=>({x:rand(3,397).toFixed(0),y:rand(228,298).toFixed(0)})),
+   obst:[{x:sunX,y:55,f:44}]}},
+  bg(w){return `<defs>${SUNGLOW}<linearGradient id="by" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fd0ff"/><stop offset="1" stop-color="#dcf4ff"/></linearGradient><linearGradient id="se" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1fa3e0"/><stop offset="1" stop-color="#6ad6ee"/></linearGradient></defs><rect width="400" height="300" fill="url(#by)"/>${sun(w.sunX)}<ellipse cx="${w.isl.toFixed(0)}" cy="139" rx="32" ry="8" fill="#4a9a6a"/><rect y="138" width="400" height="76" fill="url(#se)"/><rect y="138" width="400" height="3" fill="#cdf3ff"/>${w.wv.map(a=>`<path d="M${a.x} ${a.y} q4 -3 8 0 t8 0" stroke="#fff" stroke-opacity=".6" stroke-width="1.4" fill="none"/>`).join('')}<path d="M0 212 q50 -10 110 -3 t120 3 t170 -5 V300 H0z" fill="#e3c88a"/><path d="M0 222 q60 -10 130 -4 t130 2 t140 -6 V300 H0z" fill="#f6e2a8"/><path d="M0 211 q50 -10 110 -3 t120 3 t170 -5" stroke="#fff" stroke-width="3" fill="none" stroke-opacity=".9"/>${w.sd.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="1.2" fill="#d2b46f" opacity=".6"/>`).join('')}`}
+ },
+
+ city:{
+  name:'In the city',emoji:'🏙️',pv:'city',ys:{tree:[160,186],person:[196,216],cloud:[20,80]},
+  pal:{bird:['#5b6a9a','#9a6b5b','#3f8f7a','#8a6bb0']},
+  say:['Hello! I am walking to the park.','Look! A big red bus is coming!','My name is Dan and I ride a bike.','Beep beep! Mind the cars, please.','I love my town. It is so busy!','Hi! I am Priya and I like the shops.','Can you spot the pigeons?','I am on my way to school.'],
+  lay:[['person',3],['building',3],['car',3],['bus',1],['tlight',1],['lamp',3],['tree',3],['bike',1],['dog',1],['hydrant',1],['mailbox',1],['bird',4],['cloud',3],['balloon',2]],
+  setup(R,rand,pick){const sunX=sunSide(R,rand);
+   const sk=[];for(let x=-10;x<410;){const w=rand(26,52),h=rand(40,110);sk.push({x:x.toFixed(0),w:w.toFixed(0),h:h.toFixed(0),n:R()<.5?0:1,c:pick(['#b6c6e0','#c3cde6','#aebfdc','#bfd0e6'])});x+=w+rand(0,6)}
+   return{sunX,sk,obst:[{x:sunX,y:48,f:34}]}},
+  bg(w){let skl='';w.sk.forEach(b=>{const y=205-b.h;skl+=`<rect x="${b.x}" y="${y.toFixed(0)}" width="${b.w}" height="${b.h}" fill="${b.c}"/>`;for(let j=0;j<b.h-12;j+=12)for(let i=0;i<b.w-8;i+=10)if((i+j+(+b.x))%3===0)skl+=`<rect x="${+b.x+4+i}" y="${(y+6+j).toFixed(0)}" width="4" height="5" fill="#fff" fill-opacity=".45"/>`});let tiles='',dash='';for(let x=0;x<400;x+=30)tiles+=`<path d="M${x} 205 V245" stroke="#c3c3cc"/>`;for(let x=0;x<400;x+=40)dash+=`<rect x="${x}" y="276" width="22" height="3" fill="#f4e27a"/>`;return `<defs>${SUNGLOW}<linearGradient id="cy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#eaf6ff"/></linearGradient></defs><rect width="400" height="300" fill="url(#cy)"/>${sun(w.sunX,20)}${skl}<rect y="205" width="400" height="42" fill="#d6d6de"/>${tiles}<rect y="245" width="400" height="5" fill="#b4b4be"/><rect y="250" width="400" height="50" fill="#50566a"/>${dash}<rect y="253" width="400" height="1.5" fill="#fff" fill-opacity=".4"/>`}
+ }
+};
+// ---------- difficulty ----------
+// hue: how far a colour moves, lum: how far grey/white things shift, z: [bigger, smaller],
+// gaps: how far apart differences must be (relaxed step by step), mx: most differences of one kind of object
+const LV={
+ easy:{n:'Easy',s:'⭐',hue:[75,130],lum:.4,z:[1.42,.7],gaps:[80,55,35,0],mx:2,w:25},
+ medium:{n:'Medium',s:'⭐⭐',hue:[30,45],lum:.28,z:[1.28,.78],gaps:[60,40,25,0],mx:3,w:40},
+ hard:{n:'Hard',s:'⭐⭐⭐',hue:[19,28],lum:.2,z:[1.2,.83],gaps:[40,26,15,0],mx:4,w:35}
+};
+const WANT=10;
+
+const hsl2rgb=(h,s,l)=>{const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return l-a*Math.max(-1,Math.min(k-3,9-k,1))};return[f(0),f(8),f(4)].map(v=>v*255)};
+function tweak(hex,R,L,boost){ // a nearby colour that still looks clearly different
+  const n=parseInt(hex.slice(1),16),rgb=[n>>16,n>>8&255,n&255],r=rgb[0]/255,g=rgb[1]/255,b=rgb[2]/255;
   const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,d=mx-mn;
   let h=0,s=0;
   if(d){s=d/(1-Math.abs(2*l-1));h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;if(h<0)h+=360}
-  const L=l<.2?.4:l>.9?.8:l;
-  return `hsl(${Math.round((h+(R()<.5?-1:1)*(30+R()*15)+360)%360)} ${Math.round(Math.max(s,.3)*100)}% ${Math.round(L*100)}%)`;
-}
-function dims(t){
-  const lines=[];let cur='';
-  t.split(' ').forEach(w=>{if(cur&&(cur+' '+w).length>14){lines.push(cur);cur=w}else cur=cur?cur+' '+w:w});
-  lines.push(cur);
-  return{lines,w:Math.max(...lines.map(l=>l.length))*5.4+12,h:lines.length*11+8};
-}
-function bubble(t){
-  const{lines,w,h}=dims(t);
-  return `<g transform="translate(0 ${(-(36+h/2)).toFixed(1)})"><polygon points="-5,${h/2-1} 3,${h/2-1} 0,${h/2+9}" fill="#fff" stroke="#3b2a63" stroke-width="1.2" stroke-linejoin="round"/><rect x="${(-w/2).toFixed(1)}" y="${(-h/2).toFixed(1)}" width="${w.toFixed(1)}" height="${h}" rx="9" fill="#fff" stroke="#3b2a63" stroke-width="1.2"/><rect x="-4" y="${h/2-3}" width="7" height="4" fill="#fff"/><text text-anchor="middle" fill="#3b2a63" style="font:700 9.5px 'Fredoka','Comic Sans MS',sans-serif">${lines.map((l,i)=>`<tspan x="0" y="${(-h/2+13+i*11).toFixed(1)}">${l}</tspan>`).join('')}</text></g>`;
-}
-function wordDiff(o){
-  const A=dims(o.say),B=dims(o.q);
-  return{x:o.x,y:o.y-(36+A.h/2)*o.s,w:Math.max(A.w,B.w)/2*o.s,h:Math.max(A.h,B.h)/2*o.s,r:0};
+  const grey=s<.2,tint=Math.round(R()*360),sign=R()<.5?-1:1;
+  const deg=(L.hue[0]+R()*(L.hue[1]-L.hue[0]))*boost;
+  let nh=grey?tint:(h+sign*deg+360)%360,ns=grey?.38:Math.max(s,.35),nl=grey?Math.min(.94,Math.max(.1,l+(l>.5?-1:1)*L.lum*boost)):Math.min(.78,Math.max(.25,l));
+  for(let t=0;t<3;t++){ // make sure the change shows up
+    const c=hsl2rgb(nh,ns,nl);
+    if(Math.max(...c.map((v,i)=>Math.abs(v-rgb[i])))>=(t?60:48))break;
+    nl=Math.min(.9,Math.max(.1,nl+(nl>.5?-.14:.14)));ns=Math.max(ns,.55);
+  }
+  return `hsl(${Math.round(nh)} ${Math.round(ns*100)}% ${Math.round(nl*100)}%)`;
 }
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-const WANT=10;
-function gen(seed){
-  const R=rng(seed),pick=a=>a[Math.floor(R()*a.length)],rand=(a,b)=>a+R()*(b-a);
-  const th=pick(THEMES),sunX=R()<.5?rand(45,90):rand(310,355);
-  const objs=[],obst=[{x:sunX,y:55,f:44}];
-  const add=(t,n)=>{const d=T[t];for(let i=0;i<n;i++)for(let k=0;k<80;k++){
-    const x=rand(...(d.x||[30,370])),y=rand(d.y[0],d.y[1]);
-    if([...objs,...obst].every(p=>Math.hypot(x-p.x,y-p.y)>=d.f+p.f)){
-      const c=PAL[t]?pick(PAL[t]):null;const c2=c?tweak(c,R):c;const say=pick(SAY);let q=pick(SAY);while(q===say)q=pick(SAY);
-      objs.push({t,x,y,c,c2,say,q,f:d.f,r:d.r,s:t==='person'?rand(.8,1.25):rand(.92,1.08),z:R()<.5?1.28:.78,w:pick(WALLS),sk:pick(SKIN),hr:pick(HAIR),p:pick(PANTS)});break;}}};
-  add('person',3);add('house',R()<.5?2:1);add('tree',4);add('cloud',4);add('balloon',3);add('kite',2);add('bird',4);add('butterfly',3);add('flower',8);add('mushroom',4);add('ladybug',3);
-  const people=objs.filter(o=>o.t==='person'),hidden=o=>people.filter(p=>!p.mute).some(p=>{const w=wordDiff(p);return Math.abs(o.x-w.x)<w.w+o.r&&Math.abs(o.y-w.y)<w.h+o.r});
-  people.forEach(p=>{p.mute=R()<.45});
-  if(people.length>1){if(people.every(p=>p.mute))people[0].mute=false;if(people.every(p=>!p.mute))people[0].mute=true}
-  const order=objs.map(o=>[R(),o]).sort((a,b)=>a[0]-b[0]).map(a=>a[1]),chosen=[],cnt={};
-  [[60,2],[40,3],[25,4],[0,9]].forEach(([gap,max])=>order.forEach(o=>{
-    if(chosen.length<WANT&&!o.d&&(cnt[o.t]||0)<max&&chosen.every(q=>Math.hypot(o.x-q.x,o.y-q.y)>gap)&&(o.t==='person'||!hidden(o))){o.d=pick(o.mute?T[o.t].k.filter(k=>k!=='words'):T[o.t].k);chosen.push(o);cnt[o.t]=(cnt[o.t]||0)+1;}}));
-  const far=Array.from({length:15},(_,i)=>({x:i*28+rand(-6,6),r:rand(9,17)})),tufts=Array.from({length:45},()=>({x:rand(5,395),y:rand(232,296)}));
-  return{th,sunX,far,tufts,objs,diffs:chosen.map(o=>o.d==='words'?wordDiff(o):{x:o.x,y:o.y,r:o.r})};
+
+// people keep their distance from each other (for their speech bubbles) but sit closer to other things
+const need=(t,f,p)=>{const a=!!T[t].person,b=!!(p.t&&T[p.t].person);return a&&b?92:((a?24:f)+(b?24:p.f))*.74};
+function gen(seed,id,lv){
+  const S=SC[id],L=LV[lv],R=rng(seed),pick=a=>a[Math.floor(R()*a.length)],rand=(a,b)=>a+R()*(b-a);
+  const bgd=S.setup(R,rand,pick),objs=[],obst=[...(bgd.obst||[])];
+  const add=(t,n)=>{
+    const d=T[t],yr=(S.ys&&S.ys[t])||d.y,pl=(S.pal&&S.pal[t])||PAL[t];
+    if(typeof n==='function')n=n(R);
+    for(let i=0;i<n;i++)for(let k=0;k<150;k++){
+      const x=rand(...(d.x||[30,370])),y=rand(yr[0],yr[1]);
+      if([...objs,...obst].every(p=>Math.hypot(x-p.x,y-p.y)>=need(t,d.f,p))){
+        const tiny=d.f<=14&&lv==='hard',boost=tiny?1.5:1,zz=tiny?[1.3,.78]:L.z;
+        const c=pl?pick(pl):null,c2=c?tweak(c,R,L,boost):c;
+        const say=d.person?pick(S.say):'';let q=say;if(d.person)while(q===say)q=pick(S.say);
+        objs.push({t,x,y,c,c2,say,q,f:d.f,r:d.r,s:d.person?rand(.8,1.25):rand(.92,1.08),z:R()<.5?zz[0]:zz[1],w:pick(WALLS),sk:pick(SKIN),hr:pick(HAIR),p:pick(PANTS),fl:R()<.5?-1:1,v:R(),pv:S.pv});break;
+      }
+    }
+  };
+  [...S.lay].sort((a,b)=>T[b[0]].f-T[a[0]].f).forEach(([t,n])=>add(t,n)); // biggest things first
+  const talkers=objs.filter(o=>T[o.t].person);
+  talkers.forEach(p=>{p.mute=R()<.45});
+  if(talkers.length>1){if(talkers.every(p=>p.mute))talkers[0].mute=false;if(talkers.every(p=>!p.mute))talkers[0].mute=true}
+  const hidden=o=>talkers.filter(p=>!p.mute).some(p=>{const w=wordDiff(p);return Math.abs(o.x-w.x)<w.w+o.r&&Math.abs(o.y-w.y)<w.h+o.r});
+  const bias=lv==='hard'?1:lv==='easy'?-1:0; // hard picks small things first, easy picks big things first
+  const order=objs.map(o=>[R()+bias*o.f/60,o]).sort((a,b)=>a[0]-b[0]).map(a=>a[1]),chosen=[],cnt={};
+  const kinds=o=>{const all=T[o.t].k.filter(x=>!(x==='words'&&o.mute));const k=lv==='hard'&&o.f>=30?all.filter(x=>x!=='missing'):all;return k.length?k:all};
+  const take=(gap,max,ignoreHidden)=>order.forEach(o=>{
+    if(chosen.length<WANT&&!o.d&&(cnt[o.t]||0)<max&&chosen.every(q=>Math.hypot(o.x-q.x,o.y-q.y)>gap)&&(ignoreHidden||T[o.t].person||!hidden(o))){
+      o.d=pick(kinds(o));chosen.push(o);cnt[o.t]=(cnt[o.t]||0)+1;
+    }
+  });
+  L.gaps.forEach((gap,i)=>take(gap,i>=3?99:L.mx+i,false));
+  take(0,99,true);
+  return{id,lv,S,bgd,objs,ch:chosen,diffs:chosen.map(o=>o.d==='words'?wordDiff(o):{x:o.x,y:o.y,r:o.r})};
+}
+
+// ---------- drawing a picture ----------
+function drawObj(o,alt){
+  if(alt&&o.d==='missing')return '';
+  const c=alt&&o.d==='color'?o.c2:o.c,k=o.s*(alt&&o.d==='size'?o.z:1);
+  return `<g transform="translate(${fx(o.x)} ${fx(o.y)}) scale(${k.toFixed(3)})">${DRAW[o.t](c,o)}</g>`;
 }
 function scene(alt){
-  const th=world.th,sx=world.sunX.toFixed(0);
-  let s=`<defs><radialGradient id="gl"><stop offset="0" stop-color="#fff6a8" stop-opacity=".9"/><stop offset="1" stop-color="#fff6a8" stop-opacity="0"/></radialGradient><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".75"/></linearGradient><linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></linearGradient></defs><rect width="400" height="300" fill="${th.sky}"/><rect width="400" height="230" fill="url(#sk)"/><circle cx="${sx}" cy="55" r="62" fill="url(#gl)"/><circle cx="${sx}" cy="55" r="24" fill="#ffd93b"/>${world.far.map(f=>`<circle cx="${f.x.toFixed(0)}" cy="182" r="${f.r.toFixed(0)}" fill="#2f7d3a" opacity=".5"/>`).join('')}<ellipse cx="100" cy="238" rx="190" ry="62" fill="${th.h1}"/><ellipse cx="340" cy="238" rx="170" ry="50" fill="${th.h2}"/><rect y="224" width="400" height="76" fill="${th.g}"/><ellipse cx="100" cy="238" rx="190" ry="62" fill="url(#sh)"/><rect y="224" width="400" height="76" fill="url(#sh)"/>${world.tufts.map(t=>`<path d="M${t.x.toFixed(0)} ${t.y.toFixed(0)} l-2 -5 m2 5 v-6 m0 6 l2 -5" stroke="${th.h2}" stroke-width="1.3" fill="none"/>`).join('')}`;
-  [...world.objs].sort((a,b)=>a.y-b.y).forEach(o=>{
-    if(alt&&o.d==='missing')return;
-    const c=alt&&o.d==='color'?o.c2:o.c,k=o.s*(alt&&o.d==='size'?o.z:1);
-    s+=`<g transform="translate(${o.x.toFixed(1)} ${o.y.toFixed(1)}) scale(${k.toFixed(2)})">${DRAW[o.t](c,o,alt&&o.d==='words'?o.q:o.say)}</g>`;
+  const w=world;
+  let s=w.S.bg(w.bgd);
+  const key=o=>T[o.t].back?o.y-500:o.y; // tall buildings are drawn behind the sky things
+  [...w.objs].sort((a,b)=>key(a)-key(b)).forEach(o=>{s+=drawObj(o,alt)});
+  w.objs.forEach(o=>{ // speech bubbles sit on top of everything
+    if(!T[o.t].person||o.mute||(alt&&o.d==='missing'))return;
+    const k=o.s*(alt&&o.d==='size'?o.z:1);
+    s+=`<g transform="translate(${fx(o.x)} ${fx(o.y)}) scale(${k.toFixed(3)})">${bubble(alt&&o.d==='words'?o.q:o.say)}</g>`;
   });
   return s;
 }
 
+// ---------- the game ----------
 const svgs=[document.getElementById('A'),document.getElementById('B')];
 const statusEl=document.getElementById('status');
 const dotsEl=document.getElementById('dots');
+const tagsEl=document.getElementById('tags');
 const win=document.getElementById('win');
-let world,DIFFS,TOTAL,found=new Set(),missTimer=null;
+let world,DIFFS,TOTAL,found=new Set(),missTimer=null,lastScene='';
 
 function label(){
   const n=found.size;
   return n===0?`Find ${TOTAL} differences!`:n===1?'1 difference found':`${n} differences found`;
 }
-function newPicture(){
-  world=gen((Date.now()^Math.floor(Math.random()*1e9))>>>0);
+function chooseLevel(){
+  let r=Math.random()*100;
+  for(const k of Object.keys(LV)){r-=LV[k].w;if(r<0)return k}
+  return 'medium';
+}
+function newPicture(id,lv,seed){
+  const ids=Object.keys(SC).filter(i=>i!==lastScene);
+  id=id||ids[Math.floor(Math.random()*ids.length)];lv=lv||chooseLevel();
+  lastScene=id;
+  world=gen(seed!=null?seed:((Date.now()^Math.floor(Math.random()*1e9))>>>0),id,lv);
   DIFFS=world.diffs;TOTAL=DIFFS.length;render();
 }
 function render(){
   svgs.forEach((s,i)=>{s.innerHTML=scene(i===1)+'<g class="marks"></g>';});
   dotsEl.innerHTML=DIFFS.map(()=>'<div class="dot"></div>').join('');
+  tagsEl.innerHTML=`<span class="tag">${world.S.emoji} ${world.S.name}</span><span class="tag">${LV[world.lv].s} ${LV[world.lv].n}</span>`;
   document.getElementById('wintext').textContent=`You found all ${TOTAL} differences. Great spotting!`;
   found=new Set(); update(); win.classList.remove('show');
 }
@@ -217,9 +534,9 @@ function tap(e){
   }
 }
 svgs.forEach(s=>s.addEventListener('click',tap));
-document.getElementById('newp').onclick=newPicture;
+document.getElementById('newp').onclick=()=>newPicture();
 document.getElementById('again').onclick=render;
-document.getElementById('play').onclick=newPicture;
+document.getElementById('play').onclick=()=>newPicture();
 newPicture();
 </script>
 </body>
