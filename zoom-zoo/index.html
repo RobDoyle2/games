@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zoom Zoo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#e6f5ef;--panel:#fff;--ink:#12343b;--mute:#4f7077;--gold:#ffc233;--goldink:#3b2a00;--ok:#1f8a4c;--okbg:#c9f0d8;--bad:#c2312d;--badbg:#fbd5d2;--line:#b9dccf;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e2227;--panel:#173239;--ink:#e9f6f2;--mute:#9bbcc2;--ok:#6fe0a0;--okbg:#1d4a35;--bad:#ff8a84;--badbg:#4d2326;--line:#2b4f57}}
+:root[data-theme="dark"]{--bg:#0e2227;--panel:#173239;--ink:#e9f6f2;--mute:#9bbcc2;--ok:#6fe0a0;--okbg:#1d4a35;--bad:#ff8a84;--badbg:#4d2326;--line:#2b4f57}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Fredoka",ui-rounded,"Trebuchet MS",system-ui,sans-serif;min-height:100vh;position:relative}
+main{max-width:420px;margin:0 auto;padding:22px 18px 28px;display:flex;flex-direction:column;gap:12px}
+.top{display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.top h1{font-size:1.35rem;margin:0;font-weight:700}
+.top div{display:flex;gap:10px;align-items:center;color:var(--mute);font-size:.95rem}
+.lens{position:relative;width:min(100%,320px);aspect-ratio:1;margin:2px auto 0;border-radius:50%;overflow:hidden;background:#222;border:8px solid var(--ink);box-shadow:0 0 0 4px var(--gold)}
+.lens svg{display:block;width:100%;height:100%}
+.lens::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;background:radial-gradient(ellipse at 28% 20%,rgba(255,255,255,.38),transparent 38%),radial-gradient(circle,transparent 52%,rgba(0,0,0,.4))}
+.info{display:flex;justify-content:space-between;align-items:center;min-height:42px}
+.worth{font-weight:600}
+button{font:inherit;cursor:pointer}
+.zoom{background:transparent;color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:7px 16px;font-weight:600}
+.zoom:disabled{opacity:.35;cursor:default}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{background:var(--panel);color:var(--ink);border:2px solid var(--line);border-radius:16px;padding:14px 8px;font-weight:600;font-size:1.05rem;min-height:56px}
+.opt:active:not(:disabled){transform:scale(.97)}
+.opt.ok{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
+.opt.bad{background:var(--badbg);border-color:var(--bad);color:var(--bad);opacity:.8}
+.opt:disabled{cursor:default}
+.msg{text-align:center;font-weight:600;min-height:1.5em}
+.fact{background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:12px 14px;line-height:1.35}
+.main-btn{background:var(--gold);color:var(--goldink);border:0;border-radius:16px;padding:15px;font-weight:700;font-size:1.1rem;width:100%}
+.end{text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center;padding-top:20px}
+.end .big{font-size:4rem;font-weight:700;line-height:1}
+.end h2{margin:0;font-size:1.5rem}
+.end p{margin:0;color:var(--mute)}
+.ov{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(8,24,28,.72);backdrop-filter:blur(3px)}
+.ov .card{width:100%;max-width:360px;background:var(--panel);border:3px solid var(--gold);border-radius:24px;padding:22px 20px;text-align:center;display:flex;flex-direction:column;gap:10px;animation:pop .45s cubic-bezier(.3,1.5,.5,1)}
+.ov .em{font-size:3.6rem;line-height:1}
+.ov h2{margin:0;font-size:1.9rem}
+.ov .nm{font-size:1.2rem;font-weight:600}
+.ov .pt{font-weight:700;color:var(--ok);font-size:1.15rem}
+.ov.lose .pt{color:var(--bad)}
+.ov.lose .card{border-color:var(--bad)}
+.ov p{margin:0;color:var(--mute);line-height:1.35}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:var(--gold)}
+.lvl{position:fixed;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;font-size:3.4rem;font-weight:700;pointer-events:none;color:#fff;background:rgba(8,24,28,.55);text-shadow:0 3px 0 var(--ink);animation:pop .5s cubic-bezier(.3,1.5,.5,1)}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.ov .card,.lvl{animation:none}}
+.goes{text-align:center;font-weight:600;font-size:1.1rem;letter-spacing:2px}
+.shake{animation:shake .4s;border-color:var(--bad)!important}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.shop{display:flex;flex-direction:column;gap:12px}
+.shopTop{display:flex;justify-content:space-between;align-items:center;font-size:1.2rem}
+.shopAv svg{display:block;width:150px;margin:0 auto;border-radius:20px;border:4px solid var(--gold)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.tab{flex:none;background:var(--panel);color:var(--ink);border:2px solid var(--line);border-radius:999px;padding:7px 14px;font-weight:600}
+.tab.on{background:var(--gold);color:var(--goldink);border-color:transparent}
+.items{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.item{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:6px;text-align:center;font-size:.82rem;color:var(--ink)}
+.item svg{width:100%;height:auto;border-radius:10px;display:block;margin-bottom:4px}
+.item.eq{border-color:var(--ok)}
+#endAv svg{width:120px;height:130px;border-radius:50%;border:4px solid var(--gold);display:block}
+.coinline{font-weight:700;color:var(--ok);font-size:1.1rem}
+.ov .card{max-height:92vh;overflow-y:auto}
+.wlist{display:flex;flex-direction:column;gap:8px;max-height:40vh;overflow-y:auto}
+.wp{display:flex;gap:10px;align-items:center;text-align:left;background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:6px;color:var(--ink);font-size:1rem}
+.wp svg{width:54px;height:54px;border-radius:50%;flex:none}
+.wp.on{border-color:var(--gold)}
+.addrow{display:flex;gap:8px}
+.addrow input{flex:1;min-width:0;font:inherit;font-size:1.05rem;padding:11px 14px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink)}
+.addrow .main-btn{width:auto;padding:11px 18px}
+.hsl{text-align:center;font-weight:600;font-size:.95rem}
+.hst{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:4px}
+.hst i{display:block;height:100%;width:0;background:var(--gold);transition:width .4s}
+.hs{margin-bottom:2px}
+.shopName,.introWho{text-align:center;font-weight:700}
+#introAv svg{width:96px;height:104px;border-radius:50%;border:4px solid var(--gold);margin:0 auto;display:block}
+.item.lock svg{opacity:.45}
+.ver{position:absolute;top:calc(3px + env(safe-area-inset-top,0px));right:10px;font-size:.7rem;font-weight:600;color:var(--mute);opacity:.85;pointer-events:none;z-index:25}
+.typebox{display:flex;gap:10px}
+.typebox input{flex:1;min-width:0;font:inherit;font-size:1.15rem;font-weight:600;padding:13px 16px;border:2px solid var(--line);border-radius:16px;background:var(--panel);color:var(--ink)}
+.typebox .main-btn{width:auto;padding:13px 20px}
+.hintbtn{align-self:center}
+.hide{display:none}
+.cf{position:absolute;width:9px;height:9px;border-radius:2px;pointer-events:none;z-index:30}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="ver" id="ver">v0.01</div>
+<main>
+  <div class="top"><h1>Zoom Zoo</h1><div><span id="coinTop"></span><span id="stat"></span><button class="zoom" id="shopTop" aria-label="Avatar shop">🛍️</button><button class="zoom" id="snd" aria-label="Sound on or off">🔊</button></div></div>
+  <div id="play">
+    <div class="hs"><div class="hsl" id="hsl"></div><div class="hst"><i id="hsf"></i></div></div>
+    <div class="lens" id="lens"></div>
+    <div class="info"><span class="worth" id="worth"></span><button class="zoom" id="zoomBtn">Zoom out</button></div>
+    <div class="msg" id="msg"></div>
+    <div class="opts hide" id="opts"></div>
+    <div class="goes" id="goes"></div>
+    <div class="typebox"><input id="ans" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Type the animal" aria-label="Your guess"><button class="main-btn" id="go">Guess</button></div>
+    <button class="zoom hintbtn" id="hint">Hint (−1 pt)</button>
+    <div class="fact hide" id="fact"></div>
+    <button class="main-btn hide" id="next">Next animal</button>
+  </div>
+  <div class="end hide" id="end">
+    <div id="endAv"></div><div class="big" id="final"></div>
+    <h2 id="rank"></h2>
+    <p id="verdict"></p>
+    <div class="coinline" id="coinline"></div><button class="main-btn" id="again">Play again</button><button class="zoom" id="endShop">🛍️ Avatar shop</button><button class="zoom" id="endSwitch">👥 Switch player</button>
+  </div>
+<div class="shop hide" id="shop">
+    <div class="shopTop"><button class="zoom" id="shopBack">‹ Back</button><b id="shopCoins"></b></div>
+    <div class="shopAv" id="shopAv"></div>
+    <div class="shopName" id="shopName"></div>
+    <div class="addrow"><input id="nameIn" maxlength="12" autocomplete="off" aria-label="Your name" placeholder="Your name"><button class="zoom" id="nameSave">Rename</button></div>
+    <div class="tabs" id="tabs"></div>
+    <div class="items" id="items"></div>
+    <div class="msg" id="shopMsg"></div>
+  </div>
+</main>
+<div class="ov" id="intro"><div class="card"><div class="em">🔍🐾</div><h2>Zoom Zoo</h2><p>Guess the animal from a tiny zoomed-in piece. Zoom out when you need help, but zoom all the way out and you lose a go. Type your answer and clear all 10 levels.</p><div id="introAv"></div><div class="introWho" id="introWho"></div><p id="introCoins"></p><button class="main-btn hide" id="contBtn">▶ Continue</button><button class="main-btn" id="playBtn">Play</button><button class="zoom" id="introShop">🛍️ Avatar shop</button><button class="zoom" id="introSwitch">👥 Switch player</button></div></div>
+<div class="ov hide" id="ov"><div class="card"><div class="em" id="ovEmoji"></div><h2 id="ovTitle"></h2><div class="nm" id="ovName"></div><div class="pt" id="ovPts"></div><p id="ovFact"></p><div class="bar"><i id="ovBar"></i></div><button class="main-btn" id="ovNext">Next animal</button></div></div>
+<div class="ov hide" id="who"><div class="card"><h2>Who’s playing?</h2><div class="wlist" id="wlist"></div><div class="addrow"><input id="wname" maxlength="12" autocomplete="off" placeholder="New player name" aria-label="Player name"><button class="main-btn" id="wadd">Add</button></div></div></div>
+<div class="lvl hide" id="lv"></div>
+<script>
+var uid=0,seed=1;
+function R(){seed=seed*16807%2147483647;return seed/2147483647}
+function sc(n,f){var s="";for(var k=0;k<n;k++)s+=f(k);return s}
+function eye(x,y,r,c1,c2,slit){var id="g"+uid++;return '<radialGradient id="'+id+'"><stop offset=".35" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></radialGradient><circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="#120c06"/><circle cx="'+x+'" cy="'+y+'" r="'+r*.8+'" fill="url(#'+id+')"/>'+(slit?'<ellipse cx="'+x+'" cy="'+y+'" rx="'+r*.55+'" ry="'+r*.13+'" fill="#000"/>':'<circle cx="'+x+'" cy="'+y+'" r="'+r*.36+'" fill="#000"/>')+'<circle cx="'+x+'" cy="'+y+'" r="'+r*.8+'" fill="none" stroke="#000" stroke-opacity=".55" stroke-width="'+r*.1+'"/><path d="M'+(x-r)+' '+y+'A'+r+' '+r+' 0 0 1 '+(x+r)+' '+y+'" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="'+r*.25+'"/><circle cx="'+(x-r*.3)+'" cy="'+(y-r*.32)+'" r="'+r*.17+'" fill="#fff" opacity=".92"/><ellipse cx="'+(x+r*.3)+'" cy="'+(y+r*.38)+'" rx="'+r*.22+'" ry="'+r*.08+'" fill="#fff" opacity=".35"/>'}
+var BG=function(c){return '<rect width="200" height="200" fill="'+c+'"/>'};
+var S=[
+{n:"Zebra",f:[120,92],t:"No two zebras have the same stripe pattern.",s:function(){return BG("#f3f1ea")+sc(16,function(k){var y=k*14-6;return '<path d="M-10 '+y+'Q100 '+(y+(k%2?22:-22))+' 210 '+(y+8)+'" stroke="#111" stroke-width="'+(6+R()*5)+'" fill="none"/>'})+'<circle cx="120" cy="92" r="19" fill="#1b1b1b"/>'+eye(120,92,13,"#7a4e26","#1a1008")}},
+{n:"Tiger",f:[110,98],t:"A tiger’s stripes are on its skin, not just its fur.",s:function(){return BG("#e8741a")+'<ellipse cx="110" cy="100" rx="44" ry="30" fill="#f6e6c8"/>'+sc(13,function(k){var y=k*16;return '<path d="M-10 '+(y+R()*10)+'Q55 '+(y-20+R()*30)+' 68 '+(y+20)+'" stroke="#141010" stroke-width="'+(4+R()*7)+'" fill="none" stroke-linecap="round"/><path d="M210 '+(y+R()*10)+'Q150 '+(y-20+R()*30)+' 150 '+(y+22)+'" stroke="#141010" stroke-width="'+(4+R()*7)+'" fill="none" stroke-linecap="round"/>'})+eye(110,98,11,"#d9c21e","#3a2a05")+'<ellipse cx="110" cy="98" rx="17" ry="11" fill="none" stroke="#111" stroke-width="3"/>'}},
+{n:"Giraffe",f:[100,100],t:"A giraffe’s tongue is about 45 cm long and dark purple.",s:function(){return BG("#ecd29a")+sc(36,function(k){return '<circle cx="'+(k%6*38-5+R()*14)+'" cy="'+((k/6|0)*40+R()*12)+'" r="'+(18+R()*6)+'" fill="#8a4c20"/>'})+'<circle cx="100" cy="100" r="19" fill="#ecd29a"/>'+eye(100,100,11,"#6a4520","#1c1008")+'<path d="M82 92Q100 74 118 92" stroke="#3a2210" stroke-width="3" fill="none"/>'}},
+{n:"Owl",f:[62,96],t:"Owls can turn their heads about 270 degrees.",s:function(){return BG("#6e5237")+sc(110,function(k){var r=k/10|0;return '<circle cx="'+(k%10*22+r%2*11)+'" cy="'+r*18+'" r="13" fill="'+(k%3?"#8a6a45":"#7a5c3b")+'" stroke="#3a2a1a" stroke-width="1.5"/>'})+'<ellipse cx="100" cy="100" rx="90" ry="72" fill="#dcc7a4" stroke="#4a3622" stroke-width="5"/><circle cx="62" cy="96" r="30" fill="#c9b08a"/><circle cx="138" cy="96" r="30" fill="#c9b08a"/>'+eye(62,96,26,"#ffbf1a","#d07a00")+eye(138,96,26,"#ffbf1a","#d07a00")+'<path d="M91 112L109 112L100 144Z" fill="#c9a24a" stroke="#6a4a10" stroke-width="2"/>'}},
+{n:"Leopard",f:[130,62],t:"Leopard spots are called rosettes.",s:function(){return BG("#dfab4a")+sc(18,function(){return '<circle cx="'+R()*200+'" cy="'+R()*200+'" r="'+(12+R()*5)+'" fill="#c98a2a" stroke="#241405" stroke-width="5" stroke-dasharray="10 6"/>'})+sc(40,function(){return '<circle cx="'+R()*200+'" cy="'+R()*200+'" r="'+(1.5+R()*2)+'" fill="#241405"/>'})+'<ellipse cx="130" cy="62" rx="22" ry="15" fill="#e9c477"/>'+eye(130,62,11,"#b8c43a","#3a2a08")+'<ellipse cx="130" cy="62" rx="17" ry="12" fill="none" stroke="#111" stroke-width="3"/>'}},
+{n:"Frog",f:[100,95],t:"Frogs blink their eyes down to help swallow food.",s:function(){return BG("#4a9a2c")+sc(22,function(){return '<circle cx="'+R()*200+'" cy="'+R()*200+'" r="'+(4+R()*7)+'" fill="#1f4d12" opacity=".55"/>'})+'<circle cx="100" cy="95" r="44" fill="#5fae38" stroke="#2a5c14" stroke-width="4"/>'+eye(100,95,34,"#ffcf33","#b8720a",1)}},
+{n:"Butterfly",f:[100,20],t:"Monarch butterflies fly thousands of kilometres each year.",s:function(){return BG("#f08a05")+sc(10,function(k){return '<path d="M0 200L200 '+(k*24-20)+'" stroke="#1a1005" stroke-width="3.5"/>'})+'<rect x="-2" y="-2" width="204" height="204" fill="none" stroke="#15100a" stroke-width="46"/>'+sc(12,function(k){return '<circle cx="'+(k*17+6)+'" cy="8" r="3.8" fill="#fff"/>'})+sc(11,function(k){return '<circle cx="'+(k*18+14)+'" cy="17" r="2.4" fill="#fff"/>'})+sc(12,function(k){return '<circle cx="190" cy="'+(k*17+22)+'" r="3.6" fill="#fff"/>'})}},
+{n:"Elephant",f:[110,80],t:"Wrinkles help elephant skin hold water and mud to stay cool.",s:function(){return BG("#8e8a85")+sc(80,function(){var x=R()*190,y=R()*200;return '<path d="M'+x+' '+y+'q12 -7 26 0" stroke="#47433f" stroke-width="1.8" fill="none"/><path d="M'+x+' '+(y+3)+'q12 -7 26 0" stroke="#aaa6a0" stroke-width="1.2" fill="none"/>'})+'<path d="M86 80Q110 54 134 80" stroke="#3d3935" stroke-width="4" fill="none"/>'+eye(110,80,9,"#a8742c","#2a1a0a")+'<path d="M92 84Q110 98 128 84" stroke="#47433f" stroke-width="3" fill="none"/>'+sc(7,function(k){return '<path d="M'+(96+k*3.5)+' 66l'+(k-3)+' -10" stroke="#2a2724" stroke-width="1.4"/>'})}},
+{n:"Peacock",f:[100,100],t:"Peacock colours come from tiny structures that bend light.",s:function(){return BG("#0d5560")+sc(70,function(k){return '<path d="M'+R()*200+' '+R()*200+'l'+(R()*30-15)+' '+(R()*30-15)+'" stroke="'+(k%2?"#1f9a7a":"#0a3a44")+'" stroke-width="1.2"/>'})+[[100,100,1.3],[28,38,.9],[172,46,.9],[36,168,.9],[168,160,.9]].map(function(q){return '<g transform="translate('+q[0]+' '+q[1]+') scale('+q[2]+')"><ellipse rx="24" ry="32" fill="#2f9a45"/><ellipse rx="19" ry="26" fill="#c9a227"/><ellipse rx="14" ry="20" fill="#1c74b0"/><ellipse rx="7" ry="10" fill="#0b1d4a"/></g>'}).join("")}},
+{n:"Panda",f:[75,98],t:"Giant pandas can spend 14 hours a day eating bamboo.",s:function(){return BG("#f4f4f1")+sc(60,function(){return '<path d="M'+R()*200+' '+R()*200+'l'+(R()*10-5)+' 9" stroke="#d6d6d0" stroke-width="1.2"/>'})+'<circle cx="30" cy="22" r="28" fill="#141414"/><circle cx="170" cy="22" r="28" fill="#141414"/><ellipse cx="72" cy="96" rx="28" ry="38" transform="rotate(25 72 96)" fill="#141414"/><ellipse cx="128" cy="96" rx="28" ry="38" transform="rotate(-25 128 96)" fill="#141414"/>'+eye(75,98,8,"#7a5230","#2b1a10")+eye(125,98,8,"#7a5230","#2b1a10")+'<path d="M84 150Q100 140 116 150Q100 172 84 150Z" fill="#111"/>'}}
+];
+var POOL=S.map(function(a){return a.n}).concat(["Lion","Cheetah","Rhino","Flamingo","Hippo","Parrot","Dalmatian","Moth","Eagle","Lizard","Toucan","Cow"]);
+var PTS=[6,4,2,1],ROUNDS=S.length,WID=[30,70,125,200],LERP=[0,.3,.7,1],MAXG=3,tries=0,hinted=false,ALIAS={Butterfly:["monarch","monarch butterfly"],Panda:["giant panda"],Peacock:["peafowl","peahen"],Elephant:["african elephant"]};
+var deck,i,score,level,answered,streak,F,cur,raf,t0,clean,mute=false,AC;
+var $=function(id){return document.getElementById(id)};
+function shuffle(a){a=a.slice();for(var k=a.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1)),t=a[k];a[k]=a[j];a[j]=t}return a}
+function tone(f,d,t){if(mute)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain();o.type=t||"sine";o.frequency.value=f;g.gain.setValueAtTime(.15,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
+function buzz(n){try{navigator.vibrate&&navigator.vibrate(n)}catch(e){}}
+function burst(){var L=$("lens").getBoundingClientRect(),cs=["#ffc233","#ff6b6b","#4dd4ac","#6fa8ff"];for(var k=0;k<20;k++){let d=document.createElement("i"),a=Math.random()*6.28,r=90+Math.random()*130;d.className="cf";d.style.cssText="left:"+(L.left+L.width/2)+"px;top:"+(L.top+scrollY+L.height/2)+"px;background:"+cs[k%4];document.body.appendChild(d);d.animate([{transform:"translate(0,0)",opacity:1},{transform:"translate("+Math.cos(a)*r+"px,"+(Math.sin(a)*r+70)+"px) rotate("+Math.random()*540+"deg)",opacity:0}],{duration:950,easing:"ease-out"}).onfinish=function(){d.remove()}}}
+function view(l){var w=WID[l],t=LERP[l],cx=F[0]+(100-F[0])*t,cy=F[1]+(100-F[1])*t;return[Math.max(0,Math.min(200-w,cx-w/2)),Math.max(0,Math.min(200-w,cy-w/2)),w,w]}
+function go(to,fast){var sv=$("sv"),from=cur,s=null;cancelAnimationFrame(raf);if(fast){cur=to;sv.setAttribute("viewBox",to.join(" "));return}
+  function st(ts){if(!s)s=ts;var p=Math.min(1,(ts-s)/550),e=1-Math.pow(1-p,3);cur=from.map(function(v,k){return v+(to[k]-v)*e});sv.setAttribute("viewBox",cur.join(" "));if(p<1)raf=requestAnimationFrame(st)}
+  raf=requestAnimationFrame(st)}
+function stat(){$("stat").textContent=(i+1)+"/"+ROUNDS+" · "+score+" pts"+(streak>1?" · 🔥"+streak:"")}
+function worth(){$("worth").textContent=answered?"":"Worth "+PTS[level]+(PTS[level]===1?" point":" points");$("zoomBtn").disabled=answered||level>=3}
+function start(){deck=shuffle(S.map(function(a,k){return{a:a,k:k}}));i=0;score=0;streak=0;$("end").classList.add("hide");$("play").classList.remove("hide");round()}
+function round(){
+  var d=deck[i],a=d.a;answered=false;level=0;clean=true;t0=Date.now();seed=d.k*131+1+Math.floor(Math.random()*99999);uid=0;
+  F=[a.f[0]+R()*8-4,a.f[1]+R()*8-4];
+  $("lens").innerHTML='<svg id="sv" viewBox="0 0 200 200"><defs><filter id="rough" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".06" numOctaves="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="5"/></filter><filter id="tex" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".35 .6" numOctaves="3" seed="4" result="n"/><feDiffuseLighting in="n" surfaceScale="2.4" lighting-color="#fff" result="l"><feDistantLight azimuth="235" elevation="55"/></feDiffuseLighting><feComposite in="SourceGraphic" in2="l" operator="arithmetic" k1="1.25" k2="0" k3="0" k4="0"/></filter><radialGradient id="lt" cx=".3" cy=".25" r=".95"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".42"/></radialGradient><filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="1.5" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 -.25"/></filter></defs><g filter="url(#tex)"><g filter="url(#rough)">'+a.s()+'</g></g><rect width="200" height="200" fill="url(#lt)"/><rect width="200" height="200" filter="url(#grain)" opacity=".4"/></svg>';
+  cur=view(0);$("sv").setAttribute("viewBox",cur.join(" "));
+  $("msg").textContent="What animal is this?";$("next").classList.add("hide");$("fact").classList.add("hide");
+  var wrong=shuffle(POOL.filter(function(n){return n!==a.n})).slice(0,3),box=$("opts");box.innerHTML="";
+  shuffle(wrong.concat([a.n])).forEach(function(n){var b=document.createElement("button");b.className="opt";b.textContent=n;b.onclick=function(){guess(b,n)};box.appendChild(b)});
+  stat();worth();
+}
+function finish(){
+  var a=deck[i].a;answered=true;level=3;go(view(3));worth();stat();
+  Array.prototype.forEach.call($("opts").children,function(b){b.disabled=true;if(b.textContent===a.n)b.classList.add("ok")});
+  $("fact").innerHTML="<b>"+a.n+".</b> "+a.t;$("fact").classList.remove("hide");
+  var n=$("next");n.textContent=i===ROUNDS-1?"See my score":"Next animal";n.classList.remove("hide");
+}
+function guess(btn,name){
+  if(answered)return;var a=deck[i].a;btn.disabled=true;
+  if(name===a.n){
+    var q=clean&&level===0&&Date.now()-t0<6000?1:0;streak++;var m=1+(streak>=3)+(streak>=6),g=(PTS[level]+q)*m;score+=g;btn.classList.add("ok");
+    $("msg").textContent="Yes! +"+g+(q?" ⚡ quick":"")+(m>1?" 🔥 x"+m:"");
+    tone(660,.15);setTimeout(function(){tone(880,.25)},120);buzz(30);burst();finish();return}
+  clean=false;streak=0;btn.classList.add("bad");tone(150,.28,"sawtooth");buzz([40,40,40]);
+  if(level<3){level++;$("msg").textContent="Not a "+name+". Zooming out.";go(view(level));worth();stat()}
+  else{$("msg").textContent="Not a "+name+". It was a "+a.n+".";finish()}
+}
+$("zoomBtn").onclick=function(){if(!answered&&level<3){level++;clean=false;go(view(level));worth();$("msg").textContent="Zoomed out. Still worth points!"}};
+$("next").onclick=function(){i++;if(i>=ROUNDS)end();else round()};
+$("snd").onclick=function(){mute=!mute;this.textContent=mute?"🔇":"🔊"};
+function end(){
+  $("play").classList.add("hide");$("end").classList.remove("hide");$("final").textContent=score+" pts";
+  $("rank").textContent=score>=70?"Wildlife Photographer":score>=50?"Head Ranger":score>=30?"Junior Keeper":"Zoo Visitor";
+  var b=0;try{b=+localStorage.getItem("zz-best")||0;if(score>b){b=score;localStorage.setItem("zz-best",b)}}catch(e){b=Math.max(b,score)}
+  $("verdict").textContent="Best score: "+b+". Fewer zoom-outs and streaks of 3 or more earn bonus points.";
+}
+function norm(s){return s.toLowerCase().replace(/[^a-z ]/g,"").replace(/^(a|an|the) /,"").trim()}
+function lev(a,b){var d=[],x,y;for(x=0;x<=a.length;x++)d[x]=[x];for(y=1;y<=b.length;y++)d[0][y]=y;for(x=1;x<=a.length;x++)for(y=1;y<=b.length;y++)d[x][y]=Math.min(d[x-1][y]+1,d[x][y-1]+1,d[x-1][y-1]+(a[x-1]===b[y-1]?0:1));return d[a.length][b.length]}
+function isRight(g,ans){g=norm(g);if(!g)return false;return[ans].concat(ALIAS[ans]||[]).some(function(w){w=norm(w);return g===w||(w.length>=5&&lev(g,w)<=1)})}
+var oldRound=round;round=function(){oldRound();tries=0;hinted=false;won=0;var inp=$("ans");inp.value="";inp.disabled=false;$("go").disabled=false;$("hint").disabled=false;$("msg").textContent="What animal is this? You get "+MAXG+" goes.";inp.focus()};
+var oldFinish=finish;finish=function(){oldFinish();$("ans").disabled=true;$("go").disabled=true;$("hint").disabled=true;$("ans").blur()};
+function submit(){
+  if(answered)return;var a=deck[i].a,v=$("ans").value;if(!norm(v))return;
+  if(isRight(v,a.n)){
+    var q=clean&&level===0&&Date.now()-t0<8000?2:0;streak++;var m=1+(streak>=3)+(streak>=6),g=(Math.max(1,PTS[level]-(hinted?1:0))+q)*m;score+=g;won=g;
+    $("msg").textContent="Yes! +"+g+(q?" ⚡ quick":"")+(m>1?" 🔥 x"+m:"");
+    tone(660,.15);setTimeout(function(){tone(880,.25)},120);buzz(30);burst();finish();return}
+  clean=false;streak=0;tries++;goes();shake();tone(150,.28,"sawtooth");buzz([40,40,40]);$("ans").select();
+  if(tries>=MAXG){$("msg").textContent="Out of goes. It was a "+a.n+".";finish();return}
+  stat();
+  var left=MAXG-tries;$("msg").textContent="Not quite, try again! "+left+(left===1?" go":" goes")+" left.";
+}
+function hint(){if(answered||hinted)return;hinted=true;$("hint").disabled=true;var n=deck[i].a.n;$("msg").textContent="Hint: "+n[0]+n.slice(1).replace(/./g," _")+" ("+n.length+" letters)"}
+$("ans").addEventListener("keydown",function(e){if(e.key==="Enter")submit()});
+$("go").onclick=submit;$("hint").onclick=hint;
+var won=0,adv,playing=false;
+function showResult(){
+  var a=deck[i].a,ok=won>0,m=1+(streak>=3)+(streak>=6),bar=$("ovBar");
+  $("ovEmoji").textContent=ok?(streak>=3?"🔥":"🎉"):"🙈";
+  $("ovTitle").textContent=ok?"Congratulations!":"Not this time!";
+  $("ovName").textContent=ok?"You found the "+a.n+"!":"It was the "+a.n+".";
+  $("ovPts").textContent=ok?"+"+won+" points"+(m>1?" · 🔥 x"+m+" streak":""):"No points. Your streak resets.";
+  $("ovFact").textContent=a.t;$("ovNext").textContent=i===ROUNDS-1?"See my score":"Next animal";
+  $("ov").className="ov"+(ok?"":" lose");
+  bar.style.transition="none";bar.style.width="100%";void bar.offsetWidth;bar.style.transition="width 4s linear";bar.style.width="0";
+  clearTimeout(adv);adv=setTimeout(nextUp,4000);
+  if(ok){burst();setTimeout(burst,250)}
+}
+function nextUp(){clearTimeout(adv);if($("ov").classList.contains("hide"))return;$("ov").className="ov hide";$("next").onclick()}
+function splash(){if(!playing)return;var lv=$("lv");lv.textContent="Level "+(i+1);lv.className="lvl";setTimeout(function(){lv.className="lvl hide";t0=Date.now();$("ans").focus()},1100)}
+var oldRound2=round;round=function(){oldRound2();splash()};
+var oldFinish2=finish;finish=function(){oldFinish2();setTimeout(showResult,1000)};
+$("ovNext").onclick=nextUp;
+$("playBtn").onclick=function(){$("intro").className="ov hide";playing=true;splash()};
+function goes(){var s="";for(var k=0;k<MAXG;k++)s+=k<tries?"🖤":"❤️";$("goes").textContent="Goes: "+s}
+function shake(){var e=$("ans");e.classList.remove("shake");void e.offsetWidth;e.classList.add("shake")}
+var oldRound3=round;round=function(){oldRound3();goes()};
+var CPn=0;
+function clip(sh,inner){var id="c"+CPn++;return '<clipPath id="'+id+'">'+sh+'</clipPath><g clip-path="url(#'+id+')">'+inner+'</g>'}
+function sky(g){return '<rect width="200" height="200" fill="#bfe3ef"/><rect y="162" width="200" height="38" fill="'+g+'"/>'}
+function shadow(){return '<ellipse cx="100" cy="166" rx="62" ry="5" fill="#000" opacity=".25"/>'}
+function LEG(xs,y,w,h){return xs.map(function(x){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'"/>'}).join("")}
+function CAT(fill,pat,c1,c2,belly){
+  var sh='<ellipse cx="95" cy="104" rx="55" ry="25"/>'+LEG([50,66,122,138],112,11,53)+'<circle cx="158" cy="88" r="19"/>';
+  return sky("#a7b86a")+shadow()+'<path d="M42 100Q18 98 22 66" stroke="'+fill+'" stroke-width="8" fill="none" stroke-linecap="round"/>'+clip(sh,'<rect width="200" height="200" fill="'+fill+'"/><ellipse cx="95" cy="124" rx="50" ry="10" fill="'+belly+'"/>'+pat)+'<circle cx="147" cy="72" r="6" fill="'+fill+'"/><circle cx="169" cy="72" r="6" fill="'+fill+'"/><ellipse cx="168" cy="96" rx="10" ry="8" fill="'+belly+'"/><path d="M172 90l7 0l-3.5 5z" fill="#e58a8a"/>'+eye(163,84,4.2,c1,c2)}
+
+S[0].f=[170,56];
+S[0].s=function(){
+  var sh='<ellipse cx="95" cy="100" rx="52" ry="27"/>'+LEG([52,66,118,132],110,9,55)+'<path d="M122 88L146 44L164 50L146 104Z"/><ellipse cx="166" cy="58" rx="20" ry="11" transform="rotate(25 166 58)"/>';
+  return sky("#8fb257")+shadow()+clip(sh,'<rect width="200" height="200" fill="#f5f3ec"/>'+sc(20,function(k){return '<path d="M'+(28+k*8.5)+' 40q'+(R()*8-4)+' 40 '+(R()*6-3)+' 130" stroke="#111" stroke-width="'+(3.5+R()*3)+'" fill="none"/>'}))+'<path d="M124 84L146 42L152 46L132 92Z" fill="#111"/><path d="M150 44L152 32L159 46Z" fill="#111"/><path d="M44 92Q28 110 34 138" stroke="#111" stroke-width="5" fill="none"/><rect x="52" y="161" width="9" height="4" fill="#111"/><rect x="66" y="162" width="9" height="3" fill="#111"/><rect x="118" y="162" width="9" height="3" fill="#111"/><rect x="132" y="161" width="9" height="4" fill="#111"/>'+eye(171,55,4.2,"#7a4e26","#1a1008")+'<ellipse cx="182" cy="64" rx="3" ry="2" fill="#222"/>'
+};
+
+S[1].f=[163,84];
+S[1].s=function(){return CAT("#e8741a",sc(16,function(k){return '<path d="M'+(38+k*8.5)+' 66q-6 22 2 50" stroke="#141010" stroke-width="'+(3+R()*4)+'" fill="none"/>'}),"#d9c21e","#3a2a05","#f6e6c8")};
+
+S[2].f=[158,26];
+S[2].s=function(){
+  var sh='<ellipse cx="95" cy="102" rx="38" ry="22"/>'+LEG([62,73,111,122],110,7,55)+'<path d="M116 92L138 32L152 36L132 98Z"/><ellipse cx="156" cy="28" rx="15" ry="8" transform="rotate(18 156 28)"/>';
+  return sky("#9bbd5a")+shadow()+clip(sh,'<rect width="200" height="200" fill="#ecd29a"/>'+sc(46,function(){return '<circle cx="'+(40+R()*130)+'" cy="'+(15+R()*150)+'" r="'+(5+R()*3)+'" fill="#8a4c20"/>'}))+'<path d="M139 20l0-9M148 18l0-9" stroke="#8a4c20" stroke-width="2.5"/><circle cx="139" cy="10" r="2.8" fill="#5a3010"/><circle cx="148" cy="8" r="2.8" fill="#5a3010"/><path d="M58 96Q48 120 52 140" stroke="#8a4c20" stroke-width="3" fill="none"/>'+eye(159,26,3.6,"#6a4520","#1c1008")
+};
+
+S[3].f=[86,72];
+S[3].s=function(){
+  return '<rect width="200" height="200" fill="#3d3a5c"/><circle cx="165" cy="35" r="16" fill="#f3efd0" opacity=".9"/><rect x="25" y="150" width="150" height="10" rx="5" fill="#4a3622"/><ellipse cx="100" cy="108" rx="40" ry="48" fill="#8a6a45"/><ellipse cx="64" cy="112" rx="12" ry="38" fill="#6e5237"/><ellipse cx="136" cy="112" rx="12" ry="38" fill="#6e5237"/><ellipse cx="100" cy="116" rx="26" ry="36" fill="#dcc7a4"/>'+sc(30,function(k){return '<path d="M'+(80+(k%5)*10+((k/5|0)%2)*5)+' '+(94+(k/5|0)*10)+'q5 6 10 0" stroke="#6a4a2a" stroke-width="1.5" fill="none"/>'})+'<path d="M62 70L68 44L82 58Z M138 70L132 44L118 58Z" fill="#6e5237"/><circle cx="86" cy="72" r="20" fill="#dcc7a4" stroke="#4a3622" stroke-width="2"/><circle cx="114" cy="72" r="20" fill="#dcc7a4" stroke="#4a3622" stroke-width="2"/>'+eye(86,72,13,"#ffbf1a","#d07a00")+eye(114,72,13,"#ffbf1a","#d07a00")+'<path d="M95 84L105 84L100 96Z" fill="#c9a24a" stroke="#6a4a10"/><path d="M84 150l-4 8M92 150l-2 8M108 150l2 8M116 150l4 8" stroke="#c9a24a" stroke-width="3"/>'
+};
+
+S[4].f=[163,84];
+S[4].s=function(){return CAT("#dfab4a",sc(24,function(){return '<circle cx="'+(40+R()*135)+'" cy="'+(74+R()*54)+'" r="'+(4+R()*3)+'" fill="#c98a2a" stroke="#241405" stroke-width="2.4" stroke-dasharray="6 3"/>'}),"#b8c43a","#3a2a08","#f1dba0")};
+
+S[5].f=[78,86];
+S[5].s=function(){
+  return '<rect width="200" height="200" fill="#6fb5cf"/><ellipse cx="100" cy="162" rx="85" ry="16" fill="#2f7a2a"/><ellipse cx="62" cy="142" rx="30" ry="15" fill="#4a9a2c" transform="rotate(-20 62 142)"/><ellipse cx="138" cy="142" rx="30" ry="15" fill="#4a9a2c" transform="rotate(20 138 142)"/><ellipse cx="100" cy="122" rx="46" ry="34" fill="#5fae38"/><ellipse cx="100" cy="132" rx="30" ry="18" fill="#c8e08a"/>'+sc(14,function(){return '<circle cx="'+(66+R()*68)+'" cy="'+(98+R()*34)+'" r="'+(2+R()*3)+'" fill="#2a5c14" opacity=".6"/>'})+'<circle cx="78" cy="88" r="17" fill="#5fae38" stroke="#2a5c14" stroke-width="2"/><circle cx="122" cy="88" r="17" fill="#5fae38" stroke="#2a5c14" stroke-width="2"/>'+eye(78,86,12,"#ffcf33","#b8720a",1)+eye(122,86,12,"#ffcf33","#b8720a",1)+'<path d="M70 118Q100 134 130 118" stroke="#2a5c14" stroke-width="2.5" fill="none"/><ellipse cx="94" cy="106" rx="1.8" ry="1.2" fill="#2a5c14"/><ellipse cx="106" cy="106" rx="1.8" ry="1.2" fill="#2a5c14"/>'
+};
+
+S[6].f=[168,38];
+S[6].s=function(){
+  var h='<path d="M102 98C130 30 182 20 190 55C194 88 150 106 102 108Z" fill="#f08a05" stroke="#15100a" stroke-width="4"/><path d="M102 108C150 112 172 136 152 160C130 176 105 142 102 108Z" fill="#f08a05" stroke="#15100a" stroke-width="4"/><path d="M104 100L182 50M104 103L188 72M104 106L158 100M104 112L150 150M106 114L138 138M104 108L168 124" stroke="#15100a" stroke-width="1.6" fill="none"/>'+[[140,36],[154,30],[168,30],[180,38],[187,52],[186,68],[170,92],[158,148],[148,162]].map(function(p){return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="2.6" fill="#fff"/>'}).join("");
+  return '<rect width="200" height="200" fill="#cfe8b8"/><path d="M0 200Q40 150 70 200Z M130 200Q170 160 200 200Z" fill="#6aa84f"/>'+h+'<g transform="translate(200 0) scale(-1 1)">'+h+'</g><ellipse cx="100" cy="106" rx="4.5" ry="24" fill="#15100a"/><circle cx="100" cy="78" r="5" fill="#15100a"/><path d="M98 74Q90 56 82 52M102 74Q110 56 118 52" stroke="#15100a" stroke-width="1.6" fill="none"/>'
+};
+
+S[7].f=[160,78];
+S[7].s=function(){
+  var g="#8e8a85";
+  return sky("#c2a878")+shadow()+'<path d="M166 100Q188 112 182 156" stroke="'+g+'" stroke-width="15" fill="none" stroke-linecap="round"/><path d="M36 96Q28 120 34 144" stroke="#767270" stroke-width="5" fill="none"/><ellipse cx="90" cy="100" rx="56" ry="40" fill="'+g+'"/>'+[48,66,112,132].map(function(x){return '<rect x="'+x+'" y="116" width="17" height="49" rx="5" fill="'+g+'"/>'}).join("")+'<circle cx="150" cy="84" r="28" fill="'+g+'"/><ellipse cx="132" cy="86" rx="17" ry="28" fill="#767270" stroke="#5e5a57" stroke-width="2"/><path d="M152 108Q172 110 168 130" stroke="#f1ead8" stroke-width="5" fill="none" stroke-linecap="round"/>'+sc(40,function(){var x=30+R()*120,y=70+R()*80;return '<path d="M'+x+' '+y+'q6 -4 14 0" stroke="#5e5a57" stroke-width="1.2" fill="none"/>'})+eye(160,78,4,"#a8742c","#2a1a0a")
+};
+
+S[8].f=[100,46];
+S[8].s=function(){
+  var f="",k,a,x,y;
+  for(k=0;k<9;k++){a=(200+k*17.5)*Math.PI/180;x=100+78*Math.cos(a);y=124+78*Math.sin(a);f+='<line x1="100" y1="124" x2="'+x+'" y2="'+y+'" stroke="#2a8a5a" stroke-width="6" stroke-linecap="round"/><g transform="translate('+x+' '+y+')"><ellipse rx="10" ry="13" fill="#2f9a45"/><ellipse rx="7.5" ry="10" fill="#c9a227"/><ellipse rx="5.5" ry="7.5" fill="#1c74b0"/><ellipse rx="2.6" ry="3.6" fill="#0b1d4a"/></g>'}
+  return '<rect width="200" height="200" fill="#b9d9a0"/><rect y="162" width="200" height="38" fill="#6aa84f"/><path d="M100 124L22 124A78 78 0 0 1 178 124Z" fill="#157060" opacity=".6"/>'+f+'<ellipse cx="100" cy="128" rx="24" ry="20" fill="#1c74b0"/><path d="M100 112Q104 84 112 66" stroke="#1c74b0" stroke-width="11" fill="none" stroke-linecap="round"/><circle cx="113" cy="62" r="7" fill="#1c74b0"/><path d="M110 56l-4-10M114 55l1-11M118 57l5-9" stroke="#1c74b0" stroke-width="1.5"/><path d="M119 62l8 2-8 3z" fill="#d9a441"/><path d="M92 146L90 164M108 146L110 164" stroke="#8a6a45" stroke-width="3"/>'+eye(114,61,2.4,"#5a3a1c","#111")
+};
+
+S[9].f=[87,67];
+S[9].s=function(){
+  return '<rect width="200" height="200" fill="#bfe3c4"/><rect y="162" width="200" height="38" fill="#7fb069"/><rect x="150" y="40" width="7" height="125" rx="3" fill="#8fbf5a"/><ellipse cx="100" cy="164" rx="52" ry="5" fill="#000" opacity=".2"/><ellipse cx="100" cy="124" rx="48" ry="44" fill="#f4f4f1"/><ellipse cx="62" cy="118" rx="14" ry="30" fill="#141414" transform="rotate(12 62 118)"/><ellipse cx="138" cy="118" rx="14" ry="30" fill="#141414" transform="rotate(-12 138 118)"/><ellipse cx="74" cy="160" rx="18" ry="11" fill="#141414"/><ellipse cx="126" cy="160" rx="18" ry="11" fill="#141414"/><circle cx="100" cy="68" r="33" fill="#f4f4f1"/><circle cx="72" cy="40" r="12" fill="#141414"/><circle cx="128" cy="40" r="12" fill="#141414"/><ellipse cx="86" cy="66" rx="9" ry="12" transform="rotate(25 86 66)" fill="#141414"/><ellipse cx="114" cy="66" rx="9" ry="12" transform="rotate(-25 114 66)" fill="#141414"/>'+eye(87,67,4,"#7a5230","#2b1a10")+eye(113,67,4,"#7a5230","#2b1a10")+'<ellipse cx="100" cy="80" rx="7" ry="5" fill="#111"/><path d="M92 90Q100 96 108 90" stroke="#111" stroke-width="1.8" fill="none"/>'
+};
+S.push({n:"Lion",f:[160,90],t:"Lions live in groups called prides.",s:function(){
+  var c="#d8a657";
+  return sky("#c9b36a")+shadow()+'<path d="M42 102Q20 108 24 130" stroke="'+c+'" stroke-width="5" fill="none"/><circle cx="24" cy="132" r="6" fill="#5a3a1a"/><ellipse cx="95" cy="104" rx="52" ry="24" fill="'+c+'"/>'+[52,68,120,136].map(function(x){return '<rect x="'+x+'" y="112" width="11" height="53" fill="'+c+'"/>'}).join("")+'<circle cx="158" cy="88" r="32" fill="#7a4a1e"/>'+sc(14,function(k){var a=k*.45;return '<circle cx="'+(158+31*Math.cos(a))+'" cy="'+(88+31*Math.sin(a))+'" r="7" fill="#8a5624"/>'})+'<circle cx="160" cy="92" r="20" fill="'+c+'"/><circle cx="150" cy="70" r="5" fill="'+c+'"/><circle cx="170" cy="70" r="5" fill="'+c+'"/><ellipse cx="168" cy="102" rx="10" ry="8" fill="#f1dba0"/><path d="M164 96l9 0l-4.5 6z" fill="#3a2418"/>'+eye(154,88,3.6,"#c9a02a","#3a2a05")+eye(168,88,3.6,"#c9a02a","#3a2a05")
+}});
+S.push({n:"Penguin",f:[91,54],t:"Penguins can’t fly, but they are superb swimmers.",s:function(){
+  return '<rect width="200" height="200" fill="#bfe3f2"/><rect y="150" width="200" height="50" fill="#f4f8fb"/><ellipse cx="100" cy="164" rx="44" ry="5" fill="#000" opacity=".2"/><ellipse cx="100" cy="106" rx="38" ry="56" fill="#16181d"/><ellipse cx="100" cy="116" rx="26" ry="42" fill="#f6f6f2"/><ellipse cx="66" cy="110" rx="9" ry="30" fill="#16181d" transform="rotate(14 66 110)"/><ellipse cx="134" cy="110" rx="9" ry="30" fill="#16181d" transform="rotate(-14 134 110)"/><ellipse cx="84" cy="164" rx="14" ry="5" fill="#f08a1c"/><ellipse cx="116" cy="164" rx="14" ry="5" fill="#f08a1c"/><circle cx="100" cy="58" r="22" fill="#16181d"/><ellipse cx="86" cy="66" rx="4" ry="9" fill="#f2c94c"/><ellipse cx="114" cy="66" rx="4" ry="9" fill="#f2c94c"/><path d="M92 62L108 62L100 78Z" fill="#f08a1c"/>'+eye(91,54,3,"#6a4a2a","#111")+eye(109,54,3,"#6a4a2a","#111")
+}});
+S.push({n:"Flamingo",f:[97,41],t:"Flamingos get their pink colour from the food they eat.",s:function(){
+  var p="#f27ea0";
+  return '<rect width="200" height="200" fill="#e8f2f7"/><rect y="150" width="200" height="50" fill="#7fc4dc"/><path d="M96 124L94 160" stroke="#e0607f" stroke-width="3"/><path d="M108 122L118 140L106 152" stroke="#e0607f" stroke-width="3" fill="none"/><ellipse cx="68" cy="102" rx="18" ry="8" fill="#f59ab4" transform="rotate(-20 68 102)"/><ellipse cx="100" cy="104" rx="34" ry="22" fill="'+p+'"/><path d="M82 104Q100 90 120 104Q106 118 82 104Z" fill="#f59ab4"/><path d="M120 92Q152 74 130 48Q112 30 98 42" stroke="'+p+'" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="97" cy="42" r="7" fill="'+p+'"/><path d="M92 40Q82 46 86 56L96 46Z" fill="#f5c6d0"/><path d="M86 56L90 52L95 48L96 46L88 48Z" fill="#222"/>'+eye(97,40,2.6,"#f2d04a","#111")+'<rect y="150" width="200" height="50" fill="#7fc4dc" opacity=".6"/>'
+}});
+S.push({n:"Crocodile",f:[158,97],t:"Crocodiles have lived on Earth for over 200 million years.",s:function(){
+  var g="#5a7a34";
+  return '<rect width="200" height="200" fill="#bfe3ef"/><rect y="132" width="200" height="68" fill="#4f9aa8"/><rect x="72" y="124" width="8" height="14" fill="'+g+'"/><rect x="118" y="120" width="8" height="14" fill="'+g+'"/><path d="M4 124Q24 112 40 110L150 100Q184 100 192 106L192 116L150 122L40 130Q20 132 4 124Z" fill="'+g+'"/><path d="M30 128Q90 138 150 122L40 130Z" fill="#b5c277"/>'+sc(12,function(k){return '<path d="M'+(36+k*10)+' '+(110-k*.8)+' l4 -8 l4 8z" fill="#46602a"/>'})+'<path d="M150 112L192 112" stroke="#2a3a14" stroke-width="1.5"/>'+sc(9,function(k){return '<path d="M'+(152+k*4.4)+' 112l1.8 4l1.8 -4z" fill="#fff"/>'})+'<circle cx="158" cy="98" r="6" fill="'+g+'"/>'+eye(158,97,3.4,"#c9d13a","#2a3a10",1)+'<rect y="132" width="200" height="68" fill="#4f9aa8" opacity=".7"/>'
+}});
+S.push({n:"Turtle",f:[176,117],t:"A turtle’s shell is part of its skeleton.",s:function(){
+  return sky("#e6d29a")+shadow()+'<ellipse cx="62" cy="152" rx="13" ry="9" fill="#8fae4a"/><ellipse cx="136" cy="152" rx="13" ry="9" fill="#8fae4a"/><path d="M26 150Q28 80 98 78Q168 80 170 150Z" fill="#6a8a3a" stroke="#3a4a1c" stroke-width="3"/><path d="M98 80V150M66 86L72 150M130 86L124 150M34 120H162M44 100H152" stroke="#3a4a1c" stroke-width="2.4" fill="none"/><path d="M160 130l-8 20" stroke="#8fae4a" stroke-width="10"/><circle cx="172" cy="122" r="14" fill="#8fae4a"/>'+eye(176,117,3,"#d9c21e","#111")+'<path d="M178 128q4 2 8 0" stroke="#3a4a1c" stroke-width="1.5" fill="none"/>'
+}});
+S.push({n:"Octopus",f:[84,96],t:"Octopuses have three hearts and blue blood.",s:function(){
+  return '<rect width="200" height="200" fill="#1f5f8f"/><rect y="156" width="200" height="44" fill="#e0c88a" opacity=".6"/>'+sc(8,function(k){return '<path d="M'+(56+k*12.5)+' 104q'+(R()*36-18)+' 36 '+(R()*44-22)+' 66" stroke="#a84a7a" stroke-width="9" fill="none" stroke-linecap="round"/>'})+'<ellipse cx="100" cy="76" rx="44" ry="46" fill="#a84a7a"/>'+sc(16,function(){return '<circle cx="'+(70+R()*60)+'" cy="'+(40+R()*40)+'" r="'+(1.5+R()*2.5)+'" fill="#c8709a"/>'})+eye(82,96,11,"#e6c84a","#2a1a05",1)+eye(118,96,11,"#e6c84a","#2a1a05",1)+sc(6,function(k){return '<circle cx="'+(20+k*30)+'" cy="'+(30+R()*100)+'" r="3" fill="#fff" opacity=".35"/>'})
+}});
+S.push({n:"Cow",f:[158,88],t:"Cows have best friends and get stressed when apart.",s:function(){
+  var sh='<ellipse cx="95" cy="104" rx="52" ry="26"/>'+LEG([54,68,122,136],112,10,53)+'<ellipse cx="156" cy="94" rx="17" ry="21"/>';
+  return sky("#8fc05a")+shadow()+clip(sh,'<rect width="200" height="200" fill="#f6f6f2"/>'+sc(6,function(){return '<ellipse cx="'+(50+R()*110)+'" cy="'+(80+R()*40)+'" rx="'+(8+R()*10)+'" ry="'+(7+R()*7)+'" fill="#1b1b1b"/>'}))+'<path d="M42 96Q30 110 36 134" stroke="#f6f6f2" stroke-width="4" fill="none"/><circle cx="36" cy="136" r="4" fill="#1b1b1b"/><ellipse cx="94" cy="130" rx="11" ry="6" fill="#f2b8b8"/><ellipse cx="145" cy="82" rx="8" ry="4" fill="#f6f6f2" stroke="#222" transform="rotate(-25 145 82)"/><path d="M150 76Q146 66 142 66M162 76Q166 66 170 66" stroke="#e8e0c0" stroke-width="3" fill="none"/><ellipse cx="162" cy="108" rx="11" ry="8" fill="#f2b8b8"/>'+eye(158,88,3.4,"#6a4a2a","#111")
+}});
+S.push({n:"Shark",f:[164,117],t:"Sharks have been around longer than trees.",s:function(){
+  return '<rect width="200" height="200" fill="#bfe3f2"/><rect y="96" width="200" height="104" fill="#2d7aa8"/><path d="M100 110L116 72L134 112Z" fill="#6a7d8e"/><path d="M22 128L4 98L16 126L4 156Z" fill="#6a7d8e"/><path d="M18 128C50 100 120 98 192 124C150 146 70 152 18 128Z" fill="#7c8fa0"/><path d="M34 134C90 148 150 142 188 126C150 138 90 140 34 134Z" fill="#e8eef2"/><path d="M96 138L112 160L126 138Z" fill="#6a7d8e"/><path d="M138 112q-4 8 0 16M144 112q-4 8 0 16M150 112q-4 8 0 16" stroke="#566878" stroke-width="1.6" fill="none"/><path d="M164 126Q180 130 190 124" stroke="#2a3540" stroke-width="1.6" fill="none"/>'+sc(5,function(k){return '<path d="M'+(168+k*4)+' 127l1.5 4l1.5 -4z" fill="#fff"/>'})+eye(164,117,3,"#333","#000")+'<rect y="96" width="200" height="104" fill="#2d7aa8" opacity=".25"/>'
+}});
+S.push({n:"Fox",f:[158,92],t:"A fox’s bushy tail keeps it warm and helps it balance.",s:function(){
+  var c="#e0701c";
+  return sky("#a7b86a")+shadow()+'<path d="M44 104C10 98 6 142 30 142C52 142 52 122 44 104Z" fill="'+c+'"/><circle cx="20" cy="136" r="8" fill="#fff"/><ellipse cx="95" cy="108" rx="46" ry="20" fill="'+c+'"/><ellipse cx="100" cy="120" rx="36" ry="8" fill="#f6efe2"/>'+[62,76,112,126].map(function(x){return '<rect x="'+x+'" y="116" width="8" height="49" fill="'+c+'"/><rect x="'+x+'" y="146" width="8" height="19" fill="#2a1a10"/>'}).join("")+'<path d="M138 82L178 102L142 120Z" fill="'+c+'"/><path d="M142 84L146 58L158 78Z M158 78L170 58L172 86Z" fill="'+c+'"/><path d="M146 80L148 66L154 78Z" fill="#2a1a10"/><path d="M148 112L178 102L162 122Z" fill="#fff"/><circle cx="178" cy="102" r="3.4" fill="#111"/>'+eye(158,92,3.4,"#d9a21e","#2a1a05")
+}});
+S.push({n:"Hippo",f:[156,86],t:"Hippos make a natural red fluid that works like sunscreen.",s:function(){
+  var g="#8a7d8f";
+  return '<rect width="200" height="200" fill="#bfe3ef"/><ellipse cx="90" cy="112" rx="58" ry="34" fill="'+g+'"/><path d="M34 100Q22 104 24 118" stroke="'+g+'" stroke-width="5" fill="none"/><ellipse cx="156" cy="104" rx="30" ry="22" fill="'+g+'"/><path d="M134 112Q158 124 184 110" stroke="#4a4050" stroke-width="2" fill="none"/><circle cx="176" cy="90" r="4" fill="#9a8a9f"/><circle cx="162" cy="86" r="5" fill="'+g+'"/><circle cx="146" cy="82" r="6" fill="#7a6d7f"/>'+eye(156,86,3.8,"#5a3a2a","#111")+'<rect y="136" width="200" height="64" fill="#5aa3b8" opacity=".85"/>'
+}});
+ALIAS.Crocodile=["croc"];ALIAS.Turtle=["tortoise","sea turtle"];ALIAS.Hippo=["hippopotamus"];ALIAS.Shark=["great white"];ALIAS.Cow=["cattle"];
+S.forEach(function(a){var f=a.s;a.s=function(){if(Math.random()<.5){F[0]=200-F[0];return '<g transform="translate(200 0) scale(-1 1)">'+f()+'</g>'}return f()}});
+S.push({n:"Pig",f:[152,90],t:"Pigs are among the smartest farm animals.",s:function(){var c="#f4a6b4";return sky("#9bbd5a")+shadow()+'<path d="M44 98Q30 90 34 106Q40 112 46 108" stroke="#e8909f" stroke-width="3" fill="none"/><ellipse cx="95" cy="106" rx="50" ry="30" fill="'+c+'"/>'+[56,70,118,132].map(function(x){return '<rect x="'+x+'" y="122" width="11" height="43" rx="3" fill="'+c+'"/><rect x="'+x+'" y="158" width="11" height="7" fill="#c87888"/>'}).join("")+'<circle cx="150" cy="96" r="22" fill="'+c+'"/><path d="M138 78L142 60L154 76Z" fill="#e8909f"/><ellipse cx="164" cy="104" rx="11" ry="8" fill="#f08fa0"/><circle cx="161" cy="104" r="1.8" fill="#8a3a4a"/><circle cx="168" cy="104" r="1.8" fill="#8a3a4a"/>'+eye(152,90,3.4,"#5a3a2a","#111")}});
+S.push({n:"Rabbit",f:[118,76],t:"A rabbit’s teeth never stop growing.",s:function(){var c="#d8c7ae";return sky("#9bbd5a")+'<ellipse cx="100" cy="164" rx="50" ry="5" fill="#000" opacity=".2"/><ellipse cx="98" cy="40" rx="7" ry="26" fill="'+c+'" transform="rotate(-8 98 40)"/><ellipse cx="116" cy="40" rx="7" ry="26" fill="'+c+'" transform="rotate(10 116 40)"/><ellipse cx="98" cy="42" rx="3.5" ry="19" fill="#f2b8b8" transform="rotate(-8 98 42)"/><ellipse cx="100" cy="132" rx="38" ry="32" fill="'+c+'"/><circle cx="62" cy="142" r="9" fill="#fff"/><ellipse cx="82" cy="162" rx="16" ry="6" fill="'+c+'"/><ellipse cx="122" cy="162" rx="16" ry="6" fill="'+c+'"/><circle cx="108" cy="82" r="25" fill="'+c+'"/><ellipse cx="126" cy="92" rx="8" ry="6" fill="#f6efe2"/><circle cx="132" cy="90" r="2.6" fill="#e58a8a"/><path d="M128 92q-14 -2 -22 4M128 94q-14 4 -20 10" stroke="#fff" stroke-width="1" fill="none"/>'+eye(118,76,4,"#7a4a2a","#111")}});
+S.push({n:"Duck",f:[145,72],t:"A duck’s feathers are waterproof thanks to special oil.",s:function(){return '<rect width="200" height="200" fill="#bfe3ef"/><path d="M52 112L34 92L58 100Z" fill="#6a6258"/><ellipse cx="95" cy="112" rx="46" ry="26" fill="#a39a8a"/><ellipse cx="118" cy="104" rx="22" ry="20" fill="#7a4a2a"/><ellipse cx="86" cy="110" rx="26" ry="12" fill="#8a8172" transform="rotate(-8 86 110)"/><path d="M136 96Q140 108 150 96Z" fill="#fff"/><circle cx="142" cy="76" r="20" fill="#2f7a52"/><path d="M130 94Q142 100 154 94L152 90Q142 94 132 90Z" fill="#fff"/><path d="M156 76Q176 74 178 82Q166 88 156 86Z" fill="#f0c020"/>'+eye(146,72,3.6,"#d9a21e","#111")+'<rect y="124" width="200" height="76" fill="#4f9aa8" opacity=".8"/>'}});
+S.push({n:"Bear",f:[158,86],t:"Bears can smell food from more than a kilometre away.",s:function(){var c="#6a4426";return sky("#7fa650")+shadow()+'<ellipse cx="92" cy="102" rx="54" ry="34" fill="'+c+'"/>'+[50,68,118,134].map(function(x){return '<rect x="'+x+'" y="116" width="16" height="49" rx="6" fill="'+c+'"/>'}).join("")+'<circle cx="38" cy="94" r="6" fill="'+c+'"/><circle cx="152" cy="86" r="25" fill="'+c+'"/><circle cx="140" cy="64" r="7" fill="'+c+'"/><circle cx="164" cy="64" r="7" fill="'+c+'"/><ellipse cx="166" cy="98" rx="13" ry="10" fill="#c9a77a"/><ellipse cx="172" cy="94" rx="4.5" ry="3.4" fill="#1a1010"/>'+eye(158,84,3.6,"#3a2210","#000")}});
+S.push({n:"Dolphin",f:[160,90],t:"Dolphins sleep with half of their brain awake.",s:function(){return '<rect width="200" height="200" fill="#bfe3f2"/><rect y="150" width="200" height="50" fill="#2d7aa8"/><path d="M20 124Q60 56 124 68Q162 74 188 98Q160 98 140 108Q100 132 60 142Q34 144 20 124Z" fill="#6f8fa8"/><path d="M40 132Q100 122 150 106Q120 132 60 142Z" fill="#dbe7ee"/><path d="M96 68L110 44L124 70Z" fill="#5d7d96"/><path d="M20 124L4 104L10 126L2 142Z" fill="#5d7d96"/><path d="M180 96Q198 98 196 104Q184 106 176 100Z" fill="#8aa8be"/><path d="M104 112L92 132L116 122Z" fill="#5d7d96"/>'+eye(160,90,3,"#333","#000")+'<circle cx="30" cy="148" r="4" fill="#fff" opacity=".7"/><circle cx="60" cy="152" r="3" fill="#fff" opacity=".7"/><circle cx="150" cy="150" r="4" fill="#fff" opacity=".7"/>'}});
+S.push({n:"Crab",f:[88,82],t:"Crabs walk sideways because of how their legs bend.",s:function(){var c="#d9482b";return sky("#e6d29a")+shadow()+sc(3,function(k){return '<path d="M62 '+(118+k*9)+'L34 '+(126+k*12)+'M138 '+(118+k*9)+'L166 '+(126+k*12)+'" stroke="#b83a20" stroke-width="4" stroke-linecap="round"/>'})+'<path d="M64 108L44 84M136 108L156 84" stroke="'+c+'" stroke-width="8" stroke-linecap="round"/><ellipse cx="42" cy="74" rx="17" ry="13" fill="'+c+'"/><ellipse cx="158" cy="74" rx="17" ry="13" fill="'+c+'"/><path d="M30 70L42 76L30 80Z M170 70L158 76L170 80Z" fill="#bfe3ef"/><ellipse cx="100" cy="122" rx="46" ry="26" fill="'+c+'"/><path d="M88 100L88 86M112 100L112 86" stroke="#b83a20" stroke-width="3"/><circle cx="88" cy="82" r="7" fill="#fff"/><circle cx="112" cy="82" r="7" fill="#fff"/>'+eye(88,82,4.6,"#333","#000")+eye(112,82,4.6,"#333","#000")}});
+S.push({n:"Snail",f:[28,76],t:"A snail can sleep for up to three years.",s:function(){return sky("#7fa650")+'<ellipse cx="100" cy="150" rx="70" ry="5" fill="#000" opacity=".2"/><path d="M24 152Q22 120 34 100Q44 92 50 108Q54 128 70 138L152 138Q170 140 172 154Z" fill="#c9b79a"/><path d="M34 100L28 78M44 98L46 76" stroke="#c9b79a" stroke-width="4" stroke-linecap="round"/><circle cx="46" cy="75" r="4" fill="#c9b79a"/><circle cx="112" cy="98" r="38" fill="#b8743a"/><path d="M112 98m-4 0a4 4 0 1 1 8 0a10 10 0 1 1 -20 0a18 18 0 1 1 36 0a26 26 0 1 1 -52 0" stroke="#6a3a14" stroke-width="3" fill="none"/>'+eye(28,76,4,"#5a3a1c","#111")}});
+S.push({n:"Sheep",f:[160,88],t:"Sheep can recognise the faces of dozens of other sheep.",s:function(){return sky("#9bbd5a")+shadow()+[58,72,118,132].map(function(x){return '<rect x="'+x+'" y="120" width="6" height="45" fill="#2a2a2a"/>'}).join("")+sc(16,function(k){return '<circle cx="'+(56+(k%8)*13+(k>7?6:0))+'" cy="'+(90+(k>7?20:0))+'" r="15" fill="#f3f1ea" stroke="#d8d4c8" stroke-width="1.5"/>'})+'<ellipse cx="152" cy="92" rx="14" ry="18" fill="#3a3a3a" transform="rotate(-10 152 92)"/><ellipse cx="140" cy="84" rx="8" ry="4" fill="#2a2a2a" transform="rotate(30 140 84)"/><circle cx="148" cy="72" r="9" fill="#f3f1ea"/>'+eye(156,86,3,"#d9c21e","#000")}});
+S.push({n:"Parrot",f:[104,50],t:"Some parrots can learn to say hundreds of words.",s:function(){return '<rect width="200" height="200" fill="#bfe8d0"/><rect x="20" y="146" width="160" height="9" rx="4" fill="#6a4a2a"/><path d="M90 130L84 192L96 192Z" fill="#2a63c8"/><path d="M104 130L110 192L118 192Z" fill="#e63946"/><ellipse cx="100" cy="98" rx="26" ry="44" fill="#e63946"/><ellipse cx="84" cy="106" rx="12" ry="34" fill="#2a63c8"/><ellipse cx="84" cy="94" rx="8" ry="12" fill="#f4c20d"/><circle cx="100" cy="52" r="22" fill="#e63946"/><ellipse cx="108" cy="54" rx="13" ry="12" fill="#f6efe2"/><path d="M110 44Q136 44 130 66Q122 58 114 62Z" fill="#f2e6c8"/><path d="M122 54Q130 56 130 66Q126 62 122 60Z" fill="#3a3028"/><path d="M92 144L92 152M108 144L108 152" stroke="#8a8a8a" stroke-width="4"/>'+eye(104,50,4,"#f2d04a","#111")}});
+S.push({n:"Camel",f:[160,40],t:"A camel’s humps store fat, not water.",s:function(){var c="#d4a95c";return '<rect width="200" height="200" fill="#f6dfa8"/><circle cx="30" cy="34" r="16" fill="#ffd45a"/><rect y="162" width="200" height="38" fill="#e2bf74"/><ellipse cx="100" cy="166" rx="62" ry="5" fill="#000" opacity=".2"/><ellipse cx="92" cy="106" rx="48" ry="24" fill="'+c+'"/><circle cx="72" cy="82" r="18" fill="'+c+'"/><circle cx="108" cy="82" r="18" fill="'+c+'"/>'+[52,66,114,130].map(function(x){return '<rect x="'+x+'" y="112" width="9" height="53" fill="'+c+'"/>'}).join("")+'<path d="M132 98Q158 82 152 52" stroke="'+c+'" stroke-width="14" fill="none" stroke-linecap="round"/><ellipse cx="160" cy="42" rx="18" ry="10" fill="'+c+'"/><circle cx="148" cy="34" r="4" fill="'+c+'"/><ellipse cx="174" cy="46" rx="6" ry="5" fill="#b88a42"/><path d="M44 100Q30 112 36 134" stroke="#b88a42" stroke-width="4" fill="none"/>'+eye(160,38,3.2,"#5a3a1c","#000")}});
+ALIAS.Duck=["mallard"];ALIAS.Parrot=["macaw"];ALIAS.Bear=["brown bear"];ALIAS.Rabbit=["bunny"];
+S.slice(20).forEach(function(a){var f=a.s;a.s=function(){if(Math.random()<.5){F[0]=200-F[0];return '<g transform="translate(200 0) scale(-1 1)">'+f()+'</g>'}return f()}});
+
+/* ---- Avatar + shop ---- */
+var SHOP={
+ skin:["Skin",[["s1","Light",0,"#f6d5b8"],["s2","Tan",0,"#e0ac82"],["s3","Brown",0,"#b97a50"],["s4","Deep",0,"#7a4a2c"]]],
+ hair:["Hair",[["none","Bald",0],["short","Short",0],["spiky","Spiky",40],["long","Long",60],["bun","Bun",60],["afro","Afro",90]]],
+ hcol:["Hair colour",[["brown","Brown",0,"#5a3a1c"],["black","Black",0,"#1c1c1c"],["blonde","Blonde",30,"#e8c35a"],["red","Ginger",40,"#c8462a"],["blue","Blue",60,"#3b82f6"],["pink","Pink",60,"#ff7ab8"],["silver","Silver",80,"#cfd6dd"]]],
+ shirt:["Shirt",[["blue","Blue",0,"#3b82f6"],["red","Red",20,"#e63946"],["green","Green",20,"#2fa05a"],["yellow","Yellow",30,"#f4c20d"],["purple","Purple",40,"#8b5cf6"],["black","Black",40,"#22232b"],["gold","Gold",150,"#e8b923"]]],
+ hat:["Hats",[["none","No hat",0],["cap","Cap",30],["party","Party hat",50],["safari","Explorer",70],["cowboy","Cowboy",80],["wizard","Wizard",110],["crown","Crown",200]]],
+ glasses:["Glasses",[["none","None",0],["round","Round",20],["sun","Shades",40],["star","Stars",70]]],
+ bg:["Scenes",[["plain","Plain",0],["sky","Sky",30],["jungle","Jungle",50],["sunset","Sunset",60],["space","Space",90]]]
+};
+var AV={coins:0,owned:{},eq:{skin:"s2",hair:"short",hcol:"brown",shirt:"blue",hat:"none",glasses:"none",bg:"plain"}};
+try{var _sv=JSON.parse(localStorage.getItem("zz-av")||"null");if(_sv&&_sv.eq&&_sv.owned){AV=_sv}}catch(e){}
+function saveAV(){try{localStorage.setItem("zz-av",JSON.stringify(AV))}catch(e){}}
+function updCoins(){$("coinTop").textContent="🪙 "+AV.coins;$("introCoins").textContent="You have 🪙 "+AV.coins+" coins to spend in the shop."}
+function col(cat,id){return(SHOP[cat][1].filter(function(r){return r[0]===id})[0]||[])[3]||"#000"}
+function bgSVG(b,p){
+  var g=function(a,z){return '<defs><linearGradient id="'+p+'g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+a+'"/><stop offset="1" stop-color="'+z+'"/></linearGradient></defs><rect width="160" height="200" fill="url(#'+p+'g)"/>'};
+  if(b==="sky")return g("#6fc3f0","#e0f4ff")+'<ellipse cx="34" cy="40" rx="22" ry="9" fill="#fff"/><ellipse cx="124" cy="26" rx="26" ry="10" fill="#fff"/>';
+  if(b==="jungle")return g("#3fa35a","#1f6a3a")+'<ellipse cx="18" cy="60" rx="10" ry="30" fill="#2d8a4a" transform="rotate(-20 18 60)"/><ellipse cx="144" cy="80" rx="10" ry="34" fill="#2d8a4a" transform="rotate(20 144 80)"/><ellipse cx="30" cy="150" rx="12" ry="28" fill="#2d8a4a" transform="rotate(30 30 150)"/>';
+  if(b==="sunset")return g("#ff8a5a","#ffd98a")+'<circle cx="80" cy="150" r="34" fill="#ffe9a8"/>';
+  if(b==="space")return g("#0d0f2e","#2a1a5a")+sc(16,function(k){return '<circle cx="'+(k*37%150+5)+'" cy="'+(k*53%120+6)+'" r="'+(1+k%3*.6)+'" fill="#fff"/>'});
+  return '<rect width="160" height="200" fill="#dff1ee"/>'}
+function star(cx,cy){var q="",k,r,a;for(k=0;k<10;k++){r=k%2?5:11;a=-Math.PI/2+k*Math.PI/5;q+=(cx+r*Math.cos(a)).toFixed(1)+","+(cy+r*Math.sin(a)).toFixed(1)+" "}return '<polygon points="'+q+'" fill="#f4c20d" stroke="#b8860b" stroke-width="1.5"/>'}
+var HATS={cap:'<path d="M44 66Q46 36 80 34Q114 36 116 66Q80 56 44 66Z" fill="#e63946"/><path d="M96 62Q130 58 140 66Q120 72 96 68Z" fill="#c1121f"/><circle cx="80" cy="34" r="3" fill="#c1121f"/>',
+ party:'<path d="M60 58L80 8L100 58Z" fill="#ff6bd6"/><path d="M58 58H102" stroke="#ffe14d" stroke-width="4"/><circle cx="80" cy="8" r="5" fill="#ffe14d"/><circle cx="74" cy="38" r="3" fill="#fff"/><circle cx="86" cy="28" r="3" fill="#ffe14d"/><circle cx="82" cy="48" r="3" fill="#6bd6ff"/>',
+ safari:'<ellipse cx="80" cy="58" rx="52" ry="9" fill="#c9a96a"/><path d="M52 58Q54 30 80 30Q106 30 108 58Z" fill="#d8bd82"/><path d="M52 54H108" stroke="#6a4a1c" stroke-width="5"/>',
+ cowboy:'<path d="M26 56Q80 74 134 56Q122 48 110 52L50 52Q38 48 26 56Z" fill="#8a5a2a"/><path d="M52 54Q52 24 80 28Q108 24 108 54Z" fill="#a06a34"/><path d="M52 50H108" stroke="#5a3a1c" stroke-width="5"/>',
+ wizard:'<ellipse cx="80" cy="58" rx="46" ry="8" fill="#5b3fb0"/><path d="M52 58L82 4L108 58Z" fill="#6b4fd0"/><path d="M52 54H108" stroke="#ffe14d" stroke-width="3"/><circle cx="76" cy="36" r="3" fill="#ffe14d"/><circle cx="88" cy="46" r="2.4" fill="#ffe14d"/>',
+ crown:'<path d="M52 62L56 30L70 46L80 24L90 46L104 30L108 62Z" fill="#f4c20d" stroke="#b8860b" stroke-width="2"/><circle cx="80" cy="44" r="3.5" fill="#e63946"/><circle cx="62" cy="52" r="2.6" fill="#3b82f6"/><circle cx="98" cy="52" r="2.6" fill="#2fa05a"/>'};
+var GL={round:'<g fill="rgba(255,255,255,.25)" stroke="#222" stroke-width="2.5"><circle cx="68" cy="91" r="11"/><circle cx="92" cy="91" r="11"/><path d="M79 90H81"/></g>',
+ sun:'<path d="M54 84H106V94Q106 104 94 102Q82 100 80 92Q78 100 66 102Q54 104 54 94Z" fill="#111"/><path d="M48 86L54 86M106 86L112 86" stroke="#111" stroke-width="2.5"/>'};
+function avatar(c,p,vb){
+  var sk=col("skin",c.skin),hc=col("hcol",c.hcol),sh=col("shirt",c.shirt),h=c.hair,back="",top="",
+  front='<path d="M46 88Q42 46 80 46Q118 46 114 88Q104 64 80 64Q56 64 46 88Z" fill="'+hc+'"/>';
+  if(h==="long")back='<path d="M44 86Q38 168 58 172L102 172Q122 168 116 86Z" fill="'+hc+'"/>';
+  if(h==="afro")back='<circle cx="80" cy="72" r="46" fill="'+hc+'"/>';
+  if(h==="spiky")front='<path d="M46 86L44 56L58 66L62 40L74 56L84 34L94 56L106 42L108 66L118 58L114 86Q100 66 80 66Q60 66 46 86Z" fill="'+hc+'"/>';
+  if(h==="bun")top='<circle cx="80" cy="40" r="13" fill="'+hc+'"/>';
+  if(h==="none")front="";
+  var gl=c.glasses==="star"?star(68,91)+star(92,91)+'<path d="M79 91H81" stroke="#b8860b" stroke-width="2"/>':(GL[c.glasses]||"");
+  return '<svg viewBox="'+(vb||"0 0 160 200")+'" xmlns="http://www.w3.org/2000/svg">'+bgSVG(c.bg,p)+back+'<rect x="70" y="112" width="20" height="30" fill="'+sk+'"/><path d="M26 200Q28 138 80 136Q132 138 134 200Z" fill="'+sh+'"/><path d="M64 138Q80 156 96 138Z" fill="'+sk+'"/><circle cx="46" cy="94" r="7" fill="'+sk+'"/><circle cx="114" cy="94" r="7" fill="'+sk+'"/><ellipse cx="80" cy="90" rx="34" ry="38" fill="'+sk+'"/>'+top+front+'<circle cx="62" cy="104" r="5" fill="#ff7a7a" opacity=".3"/><circle cx="98" cy="104" r="5" fill="#ff7a7a" opacity=".3"/><ellipse cx="68" cy="91" rx="3.6" ry="4.6" fill="#1b1b24"/><ellipse cx="92" cy="91" rx="3.6" ry="4.6" fill="#1b1b24"/><circle cx="69.2" cy="89.4" r="1.3" fill="#fff"/><circle cx="93.2" cy="89.4" r="1.3" fill="#fff"/><path d="M66 108Q80 120 94 108" stroke="#7a2a2a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M60 80Q68 76 74 80M86 80Q92 76 100 80" stroke="#3a2a1a" stroke-width="2" fill="none" stroke-linecap="round"/>'+gl+(HATS[c.hat]||"")+'</svg>'}
+var tabKey="hair",shopFrom="intro",VB={hat:"20 0 120 125",hair:"20 8 120 125",hcol:"20 8 120 125",glasses:"30 50 100 80",shirt:"10 100 140 100",skin:"20 20 120 125",bg:"0 0 160 200"};
+function renderShop(){
+  $("shopCoins").textContent="🪙 "+AV.coins;$("shopAv").innerHTML=avatar(AV.eq,"m");
+  var t=$("tabs"),box=$("items");t.innerHTML="";box.innerHTML="";
+  Object.keys(SHOP).forEach(function(k){var b=document.createElement("button");b.className="tab"+(k===tabKey?" on":"");b.textContent=SHOP[k][0];b.onclick=function(){tabKey=k;renderShop()};t.appendChild(b)});
+  SHOP[tabKey][1].forEach(function(r,n){
+    var own=r[2]===0||AV.owned[tabKey+":"+r[0]],on=AV.eq[tabKey]===r[0],o={},q;for(q in AV.eq)o[q]=AV.eq[q];o[tabKey]=r[0];
+    var b=document.createElement("button");b.className="item"+(on?" eq":"");
+    b.innerHTML=avatar(o,"t"+n,VB[tabKey])+"<b>"+r[1]+"</b><br>"+(on?"Equipped":own?"Owned":"🪙 "+r[2]);
+    b.onclick=function(){pick(r)};box.appendChild(b)});
+}
+function pick(r){
+  var k=tabKey+":"+r[0],own=r[2]===0||AV.owned[k],m=$("shopMsg");
+  if(!own){
+    if(AV.coins<r[2]){m.textContent="Not enough coins. You need "+(r[2]-AV.coins)+" more. Play a game to earn some!";tone(150,.25,"sawtooth");return}
+    AV.coins-=r[2];AV.owned[k]=true;m.textContent="You bought "+r[1]+"!";tone(660,.12);setTimeout(function(){tone(880,.2)},110)
+  }else m.textContent="";
+  AV.eq[tabKey]=r[0];saveAV();updCoins();renderShop()}
+function openShop(from){shopFrom=from;$("intro").className="ov hide";$("end").classList.add("hide");$("play").classList.add("hide");$("shop").classList.remove("hide");$("shopMsg").textContent="";renderShop()}
+$("shopBack").onclick=function(){$("shop").classList.add("hide");
+  if(shopFrom==="end"){$("end").classList.remove("hide");$("endAv").innerHTML=avatar(AV.eq,"e","10 20 140 150")}
+  else{$("play").classList.remove("hide");$("intro").className="ov"}};
+$("introShop").onclick=function(){openShop("intro")};
+$("endShop").onclick=function(){openShop("end")};
+updCoins();
+/* ---- Movie-character costumes ---- */
+var BODY='M26 200Q28 138 80 136Q132 138 134 200Z';
+var COS={
+ hero:{cape:'<path d="M38 142Q18 186 12 200L148 200Q142 186 122 142Z" fill="#c1121f"/>',
+  body:'<path d="'+BODY+'" fill="#1d4ed8"/><rect x="26" y="186" width="108" height="8" fill="#f4c20d"/>'+star(80,166),
+  head:function(){return '<path d="M48 84Q80 74 112 84L112 98Q98 94 92 98Q80 92 68 98Q62 94 48 98Z" fill="#111827"/><ellipse cx="68" cy="91" rx="5.5" ry="3.4" fill="#fff"/><ellipse cx="92" cy="91" rx="5.5" ry="3.4" fill="#fff"/>'}},
+ pirate:{body:'<path d="M24 200Q26 138 80 136Q134 138 136 200Z" fill="#7a1f1f"/><path d="M64 138L80 178L96 138Z" fill="#f4efe2"/><circle cx="80" cy="188" r="3" fill="#f4c20d"/><circle cx="80" cy="198" r="3" fill="#f4c20d"/>',
+  head:function(){return '<path d="M30 66Q80 18 130 66Q80 56 30 66Z" fill="#14141a"/><circle cx="80" cy="42" r="6" fill="#f4efe2"/><path d="M44 74L116 100" stroke="#14141a" stroke-width="2"/><ellipse cx="68" cy="91" rx="9" ry="8" fill="#14141a"/><circle cx="42" cy="104" r="3" fill="#f4c20d"/>'}},
+ ninja:{body:'<path d="'+BODY+'" fill="#1b1b22"/><path d="M26 182H134V192H26Z" fill="#c1121f"/>',
+  head:function(sk){return '<ellipse cx="80" cy="90" rx="35.5" ry="39.5" fill="#1b1b22"/><rect x="50" y="82" width="60" height="18" rx="9" fill="'+sk+'"/><ellipse cx="68" cy="91" rx="3.6" ry="4.6" fill="#1b1b24"/><ellipse cx="92" cy="91" rx="3.6" ry="4.6" fill="#1b1b24"/><circle cx="69.2" cy="89.4" r="1.3" fill="#fff"/><circle cx="93.2" cy="89.4" r="1.3" fill="#fff"/><rect x="44" y="64" width="72" height="8" fill="#c1121f"/><path d="M116 66l18-6l-4 10z" fill="#c1121f"/>'}},
+ wizard:{body:'<path d="M16 200Q20 138 80 134Q140 138 144 200Z" fill="#4c2a9a"/><circle cx="40" cy="170" r="3" fill="#ffe14d"/><circle cx="118" cy="180" r="3" fill="#ffe14d"/><circle cx="72" cy="190" r="2.6" fill="#ffe14d"/><circle cx="100" cy="162" r="2.4" fill="#ffe14d"/>',
+  head:function(){return '<path d="M54 100Q80 168 106 100Q80 116 54 100Z" fill="#f2f2f2"/>'+HATS.wizard}},
+ knight:{body:'<path d="'+BODY+'" fill="#aeb7c2"/><rect x="77" y="150" width="6" height="34" fill="#c1121f"/><rect x="66" y="162" width="28" height="6" fill="#c1121f"/><circle cx="34" cy="150" r="14" fill="#c7ced6" stroke="#8a93a0" stroke-width="2"/><circle cx="126" cy="150" r="14" fill="#c7ced6" stroke="#8a93a0" stroke-width="2"/>',
+  head:function(){return '<path d="M44 94Q44 38 80 38Q116 38 116 94L116 108L44 108Z" fill="#aeb7c2" stroke="#8a93a0" stroke-width="2"/><rect x="52" y="80" width="56" height="14" rx="4" fill="#20242c"/><circle cx="68" cy="87" r="3.4" fill="#fff"/><circle cx="92" cy="87" r="3.4" fill="#fff"/><path d="M76 40Q78 12 98 20Q86 26 88 40Z" fill="#e63946"/><path d="M80 94V108" stroke="#8a93a0" stroke-width="2"/>'}},
+ astronaut:{body:'<path d="'+BODY+'" fill="#f2f4f8"/><rect x="58" y="154" width="44" height="26" rx="4" fill="#cfd6dd"/><circle cx="68" cy="166" r="4" fill="#e63946"/><circle cx="80" cy="166" r="4" fill="#3b82f6"/><circle cx="92" cy="166" r="4" fill="#f4c20d"/><rect x="26" y="186" width="108" height="8" fill="#f08a1c"/>',
+  head:function(){return '<circle cx="80" cy="90" r="47" fill="rgba(150,200,255,.22)" stroke="#f2f4f8" stroke-width="7"/><path d="M52 66Q62 52 80 50" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" opacity=".8"/><rect x="52" y="130" width="56" height="10" rx="5" fill="#cfd6dd"/>'}},
+ robot:{body:'<path d="'+BODY+'" fill="#9fb4c8"/><rect x="58" y="152" width="44" height="30" rx="5" fill="#20303c"/><circle cx="70" cy="167" r="4" fill="#4ade80"/><circle cx="84" cy="167" r="4" fill="#facc15"/><circle cx="96" cy="167" r="4" fill="#f87171"/>',
+  head:function(){return '<rect x="44" y="46" width="72" height="76" rx="14" fill="#b9cbdb" stroke="#7d93a8" stroke-width="3"/><rect x="54" y="72" width="52" height="20" rx="8" fill="#20303c"/><circle cx="68" cy="82" r="6" fill="#22d3ee"/><circle cx="92" cy="82" r="6" fill="#22d3ee"/><circle cx="68" cy="82" r="2.4" fill="#fff"/><circle cx="92" cy="82" r="2.4" fill="#fff"/><path d="M62 106H98M68 100V112M80 100V112M92 100V112" stroke="#7d93a8" stroke-width="2"/><path d="M80 46V30" stroke="#7d93a8" stroke-width="3"/><circle cx="80" cy="28" r="5" fill="#ef4444"/>'}}
+};
+SHOP.cos=["Characters",[["tee","Starter",0],["hero","Superhero",150],["pirate","Pirate",150],["ninja","Ninja",200],["wizard","Wizard",250],["knight","Knight",300],["astronaut","Astronaut",400],["robot","Robot",500]]];
+(function(){var o={cos:SHOP.cos},k;for(k in SHOP)if(k!=="cos")o[k]=SHOP[k];SHOP=o})();
+SHOP.shirt[0]="T-shirt";tabKey="cos";VB.cos="0 20 160 180";
+var TITLE={tee:"Rookie",hero:"Superhero",pirate:"Pirate",ninja:"Ninja",wizard:"Wizard",knight:"Knight",astronaut:"Astronaut",robot:"Robot"};
+function avatar(c,p,vb){
+  var sk=col("skin",c.skin),hc=col("hcol",c.hcol),sh=col("shirt",c.shirt),h=c.hair,cs=COS[c.cos],back="",top="",
+  front='<path d="M46 88Q42 46 80 46Q118 46 114 88Q104 64 80 64Q56 64 46 88Z" fill="'+hc+'"/>';
+  if(h==="long")back='<path d="M44 86Q38 168 58 172L102 172Q122 168 116 86Z" fill="'+hc+'"/>';
+  if(h==="afro")back='<circle cx="80" cy="72" r="46" fill="'+hc+'"/>';
+  if(h==="spiky")front='<path d="M46 86L44 56L58 66L62 40L74 56L84 34L94 56L106 42L108 66L118 58L114 86Q100 66 80 66Q60 66 46 86Z" fill="'+hc+'"/>';
+  if(h==="bun")top='<circle cx="80" cy="40" r="13" fill="'+hc+'"/>';
+  if(h==="none")front="";
+  var gl=c.glasses==="star"?star(68,91)+star(92,91)+'<path d="M79 91H81" stroke="#b8860b" stroke-width="2"/>':(GL[c.glasses]||""),
+  neckline=(!cs||c.cos==="hero"||c.cos==="pirate"||c.cos==="wizard")?'<path d="M64 138Q80 156 96 138Z" fill="'+sk+'"/>':"";
+  return '<svg viewBox="'+(vb||"0 0 160 200")+'" xmlns="http://www.w3.org/2000/svg">'+bgSVG(c.bg,p)+(cs&&cs.cape||"")+back+'<rect x="70" y="112" width="20" height="30" fill="'+sk+'"/>'+(cs?cs.body:'<path d="'+BODY+'" fill="'+sh+'"/>')+neckline+'<circle cx="46" cy="94" r="7" fill="'+sk+'"/><circle cx="114" cy="94" r="7" fill="'+sk+'"/><ellipse cx="80" cy="90" rx="34" ry="38" fill="'+sk+'"/>'+top+front+'<circle cx="62" cy="104" r="5" fill="#ff7a7a" opacity=".3"/><circle cx="98" cy="104" r="5" fill="#ff7a7a" opacity=".3"/><ellipse cx="68" cy="91" rx="3.6" ry="4.6" fill="#1b1b24"/><ellipse cx="92" cy="91" rx="3.6" ry="4.6" fill="#1b1b24"/><circle cx="69.2" cy="89.4" r="1.3" fill="#fff"/><circle cx="93.2" cy="89.4" r="1.3" fill="#fff"/><path d="M66 108Q80 120 94 108" stroke="#7a2a2a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M60 80Q68 76 74 80M86 80Q92 76 100 80" stroke="#3a2a1a" stroke-width="2" fill="none" stroke-linecap="round"/>'+(cs?cs.head(sk):gl+(HATS[c.hat]||""))+'</svg>'}
+var oldRS=renderShop;renderShop=function(){oldRS();$("shopName").textContent=AV.name+" the "+TITLE[AV.eq.cos];var m=$("shopMsg");
+  if(["hat","glasses","shirt"].indexOf(tabKey)>-1&&AV.eq.cos!=="tee"&&!m.textContent)m.textContent="Hats, glasses and T-shirts show on the Starter outfit."};
+
+/* ---- Players and high scores ---- */
+var PL=[],cur=0,whoFrom="intro";
+function newP(n){return{name:n,coins:0,best:0,owned:{},eq:{skin:"s2",hair:"short",hcol:"brown",shirt:"blue",hat:"none",glasses:"none",bg:"plain",cos:"tee"}}}
+try{var _d=JSON.parse(localStorage.getItem("zz-players")||"null");if(_d&&_d.list&&_d.list.length){PL=_d.list;cur=Math.min(_d.cur||0,PL.length-1)}}catch(e){}
+if(!PL.length&&AV&&AV.eq&&(AV.coins||Object.keys(AV.owned).length)){AV.name="Player 1";AV.best=0;try{AV.best=+localStorage.getItem("zz-best")||0}catch(e){}PL=[AV]}
+PL.forEach(function(p){if(!p.eq.cos)p.eq.cos="tee";if(p.best==null)p.best=0;if(!p.name)p.name="Player"});
+AV=PL[cur]||newP("Player");
+function saveAV(){try{localStorage.setItem("zz-players",JSON.stringify({list:PL,cur:cur}))}catch(e){}}
+function esc(s){return s.replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function updIntro(){$("introWho").textContent="Playing as "+AV.name+" · Best: "+AV.best+" pts"}
+function renderWho(){var l=$("wlist");l.innerHTML="";PL.forEach(function(p,n){var b=document.createElement("button");b.className="wp"+(n===cur?" on":"");b.innerHTML=avatar(p.eq,"w"+n,"20 20 120 125")+"<span><b>"+esc(p.name)+"</b><br>Best "+p.best+" · 🪙 "+p.coins+"</span>";b.onclick=function(){pickPlayer(n)};l.appendChild(b)});$("wadd").disabled=PL.length>=8}
+function openWho(from){whoFrom=from;renderWho();$("who").className="ov";$("wname").value=""}
+function pickPlayer(n){cur=n;AV=PL[n];saveAV();updCoins();updIntro();$("who").className="ov hide";
+  if(whoFrom==="end"){playing=true;start()}else{$("intro").className="ov"}}
+function addPlayer(){var n=$("wname").value.trim().slice(0,12);if(!n||PL.length>=8)return;PL.push(newP(n));pickPlayer(PL.length-1)}
+$("wadd").onclick=addPlayer;
+$("wname").addEventListener("keydown",function(e){if(e.key==="Enter")addPlayer()});
+$("introSwitch").onclick=function(){openWho("intro")};
+$("endSwitch").onclick=function(){openWho("end")};
+function stat(){
+  $("stat").textContent=(i+1)+"/"+ROUNDS+" · "+score+" pts"+(streak>1?" · 🔥"+streak:"");
+  var b=AV.best;$("hsl").textContent=b?(score>b?"🏆 New high score! Old best: "+b:"Beat your best: "+b+" pts"):"Set your first high score!";
+  $("hsf").style.width=(b?Math.min(100,score/b*100):0)+"%"}
+var oldEnd=end;end=function(){oldEnd();var prev=AV.best,nb=score>prev;if(nb)AV.best=score;AV.coins+=score;saveAV();updCoins();
+  $("coinline").textContent="+"+score+" 🪙 coins earned! "+AV.name+" now has "+AV.coins+".";
+  $("verdict").textContent=nb?"🏆 New high score for "+AV.name+"! The old best was "+prev+".":AV.name+"’s best is "+AV.best+". Score "+(AV.best-score+1)+" more points to beat it.";
+  if(nb){$("rank").textContent="New high score!";burst();setTimeout(burst,300)}
+  $("endAv").innerHTML=avatar(AV.eq,"e","10 20 140 150")};
+updCoins();updIntro();
+if(!PL.length){openWho("intro")}
+function A(n,f,t,s){S.push({n:n,f:f,t:t,s:s})}
+function W(){return '<rect width="200" height="200" fill="#2d7aa8"/><rect width="200" height="96" fill="#bfe3f2"/>'}
+function Q(o){var c=o.c,by=o.by||104,e='<ellipse cx="95" cy="'+by+'" rx="'+(o.rx||50)+'" ry="'+(o.ry||24)+'"';
+  return sky(o.g||"#9bbd5a")+shadow()+(o.t||'<path d="M44 98Q28 108 32 130" stroke="'+c+'" stroke-width="5" fill="none"/>')+(o.n||"")+[53,67,121,135].map(function(x){return '<rect x="'+x+'" y="'+(by+6)+'" width="'+(o.lw||9)+'" height="'+(166-by-6)+'" fill="'+(o.lc||c)+'"/>'}).join("")+e+' fill="'+c+'" stroke="'+(o.s||"none")+'"/>'+(o.p?clip(e+'/>',o.p):"")+o.h+eye(o.ex,o.ey,o.er||3.6,o.e1||"#5a3a1c","#111")}
+function Bd(o){var c=o.c;return sky(o.g||"#9bbd5a")+shadow()+'<path d="M94 128L92 164M108 128L110 164" stroke="'+(o.lc||"#c9a24a")+'" stroke-width="'+(o.lw||4)+'" stroke-linecap="round"/>'+(o.t||"")+'<ellipse cx="100" cy="108" rx="36" ry="26" fill="'+c+'"/><ellipse cx="90" cy="108" rx="24" ry="14" fill="'+(o.w||c)+'" opacity=".8"/>'+o.n+'<circle cx="'+o.hx+'" cy="'+o.hy+'" r="'+(o.hr||15)+'" fill="'+(o.hc||c)+'"/>'+o.b+eye(o.hx+4,o.hy-3,o.er||3.2,o.e1||"#d9a21e","#111")}
+function Fi(o){return '<rect width="200" height="200" fill="#2d8fb8"/><rect width="200" height="90" fill="#59b9d6" opacity=".6"/>'+sc(5,function(k){return '<circle cx="'+(30+k*9)+'" cy="'+(150-k*26)+'" r="'+(3+k%2*2)+'" fill="#fff" opacity=".4"/>'})+o.f+'<path d="M150 100L190 70Q180 100 190 130Z" fill="'+o.c+'"/><ellipse cx="100" cy="100" rx="52" ry="32" fill="'+o.c+'"/>'+clip('<ellipse cx="100" cy="100" rx="52" ry="32"/>',o.p)+'<path d="M80 84Q74 100 80 116" stroke="#0004" stroke-width="2" fill="none"/><path d="M48 102Q52 106 56 104" stroke="#0006" stroke-width="2" fill="none"/>'+eye(64,92,6,"#f2d04a","#111")}
+
+/* four-legged */
+A("Horse",[168,66],"A horse can sleep standing up.",function(){return Q({c:"#8a5a32",lc:"#6a4426",rx:50,ry:22,by:102,lw:8,t:'<path d="M46 92Q22 100 28 146Q38 120 50 104Z" fill="#2a1a10"/>',n:'<path d="M122 92L146 56L166 64L140 106Z" fill="#8a5a32"/><path d="M126 86L146 50L140 46L118 80Z" fill="#2a1a10"/>',h:'<ellipse cx="168" cy="72" rx="21" ry="11" transform="rotate(25 168 72)" fill="#8a5a32"/><path d="M152 60L156 44L162 60Z" fill="#8a5a32"/><ellipse cx="184" cy="82" rx="6" ry="5" fill="#5a3a1c"/>',ex:168,ey:66})});
+A("Donkey",[162,84],"Donkeys can hear other donkeys from kilometres away.",function(){return Q({c:"#8e8a85",n:'<path d="M124 94L146 74L160 88L138 108Z" fill="#8e8a85"/>',p:'<ellipse cx="95" cy="122" rx="46" ry="9" fill="#d9d4c8"/>',t:'<path d="M46 96Q30 110 36 138" stroke="#8e8a85" stroke-width="4" fill="none"/><ellipse cx="36" cy="140" rx="4" ry="7" fill="#3a3a3a"/>',h:'<ellipse cx="158" cy="88" rx="18" ry="14" fill="#8e8a85"/><ellipse cx="150" cy="62" rx="5" ry="18" fill="#8e8a85" transform="rotate(-10 150 62)"/><ellipse cx="164" cy="62" rx="5" ry="18" fill="#8e8a85" transform="rotate(12 164 62)"/><ellipse cx="172" cy="94" rx="9" ry="7" fill="#d9d4c8"/>',ex:162,ey:84})});
+A("Goat",[162,84],"Goats have rectangular pupils.",function(){return Q({c:"#f1efe8",s:"#cfc9b8",lw:6,p:'<ellipse cx="80" cy="96" rx="14" ry="9" fill="#8a5a32"/><ellipse cx="116" cy="108" rx="10" ry="7" fill="#8a5a32"/>',h:'<ellipse cx="158" cy="86" rx="16" ry="13" fill="#f1efe8" stroke="#cfc9b8"/><path d="M150 76Q142 54 158 52M158 76Q160 56 172 56" stroke="#8a7a5a" stroke-width="4" fill="none"/><ellipse cx="144" cy="84" rx="9" ry="4" fill="#e6e2d6" transform="rotate(25 144 84)"/><path d="M164 96L168 114L172 96Z" fill="#e6e2d6"/>',e1:"#d9c21e",ex:162,ey:84})});
+A("Deer",[162,59],"A deer’s antlers fall off and regrow every year.",function(){return Q({c:"#b07a44",lw:6,p:sc(14,function(){return '<circle cx="'+(55+R()*80)+'" cy="'+(86+R()*30)+'" r="2.2" fill="#f6e8cf"/>'}),n:'<path d="M122 92L144 58L160 66L140 108Z" fill="#b07a44"/>',t:'<ellipse cx="44" cy="96" rx="5" ry="7" fill="#fff"/>',h:'<ellipse cx="160" cy="62" rx="15" ry="10" transform="rotate(20 160 62)" fill="#b07a44"/><path d="M154 52L150 30M150 38L140 30M156 46L166 34M166 34L172 22" stroke="#6a4a2a" stroke-width="3" fill="none"/><ellipse cx="148" cy="56" rx="4" ry="8" fill="#b07a44" transform="rotate(-30 148 56)"/><circle cx="174" cy="68" r="3" fill="#2a1a10"/>',ex:162,ey:59})});
+A("Rhino",[158,94],"A rhino’s horn is made of keratin, like your hair.",function(){return Q({c:"#8f8f95",rx:56,ry:28,lw:14,p:'<path d="M60 90Q95 80 130 92M70 110Q95 104 124 112" stroke="#76767c" stroke-width="2" fill="none"/>',t:'<path d="M42 100Q32 110 36 124" stroke="#7a7a80" stroke-width="4" fill="none"/>',h:'<ellipse cx="160" cy="98" rx="26" ry="18" fill="#8f8f95"/><path d="M172 86Q182 62 188 60Q186 78 182 90Z" fill="#d8d2c0"/><path d="M164 84Q168 74 172 72Q172 80 170 86Z" fill="#d8d2c0"/><path d="M144 80L146 66L156 80Z" fill="#7a7a80"/>',er:3,ex:158,ey:94})});
+A("Wolf",[158,92],"Wolves howl to talk to the rest of their pack.",function(){return Q({c:"#8d949c",p:'<ellipse cx="95" cy="118" rx="44" ry="8" fill="#c9ced4"/>',t:'<path d="M44 100C14 94 10 138 34 138C52 136 52 118 44 100Z" fill="#7a828c"/>',h:'<path d="M138 80L178 98L142 116Z" fill="#8d949c"/><path d="M142 82L146 58L158 78Z M158 78L170 58L172 84Z" fill="#8d949c"/><path d="M150 108L178 98L164 118Z" fill="#c9ced4"/><circle cx="178" cy="98" r="3.4" fill="#111"/>',e1:"#d9c21e",er:3.4,ex:158,ey:92})});
+A("Dog",[160,82],"A dog’s nose print is as unique as a fingerprint.",function(){return Q({c:"#c8893c",t:'<path d="M46 96Q30 82 36 62" stroke="#c8893c" stroke-width="6" fill="none" stroke-linecap="round"/>',h:'<circle cx="156" cy="86" r="17" fill="#c8893c"/><ellipse cx="148" cy="82" rx="6" ry="13" fill="#7a4a1e" transform="rotate(10 148 82)"/><ellipse cx="172" cy="94" rx="11" ry="8" fill="#e8c890"/><circle cx="179" cy="91" r="3.2" fill="#111"/><path d="M168 100Q172 108 176 100Z" fill="#f08a9a"/>',ex:160,ey:82})});
+A("Cat",[150,90],"Cats spend about two thirds of their lives asleep.",function(){return Q({c:"#9ea0aa",rx:40,ry:18,by:110,lw:7,t:'<path d="M56 104Q30 96 34 70Q38 60 46 66" stroke="#9ea0aa" stroke-width="6" fill="none" stroke-linecap="round"/>',p:sc(8,function(k){return '<path d="M'+(64+k*8)+' 98l2 24" stroke="#5a5c66" stroke-width="3"/>'}),h:'<circle cx="146" cy="94" r="17" fill="#9ea0aa"/><path d="M132 84L134 64L146 78Z M146 78L158 64L160 86Z" fill="#9ea0aa"/><path d="M136 80L136 70L142 78Z" fill="#f2b8b8"/><path d="M140 100L120 98M140 104L122 108M154 100L174 98M154 104L172 108" stroke="#fff" stroke-width="1"/><path d="M144 98l4 0l-2 3z" fill="#e58a8a"/>',e1:"#9ad25a",ex:150,ey:90})});
+A("Cheetah",[164,83],"A cheetah is the fastest land animal.",function(){return Q({c:"#e0b04a",rx:46,ry:17,lw:6,p:sc(28,function(){return '<circle cx="'+(52+R()*90)+'" cy="'+(90+R()*28)+'" r="'+(1.6+R()*1.4)+'" fill="#241405"/>'}),t:'<path d="M48 100Q20 100 18 130" stroke="#e0b04a" stroke-width="5" fill="none"/>',h:'<circle cx="160" cy="86" r="13" fill="#e0b04a"/><circle cx="152" cy="76" r="4" fill="#e0b04a"/><circle cx="168" cy="76" r="4" fill="#e0b04a"/><path d="M164 90Q166 100 160 106" stroke="#241405" stroke-width="2" fill="none"/><circle cx="170" cy="92" r="2.6" fill="#241405"/>',e1:"#b8a030",ex:164,ey:83})});
+A("Bison",[160,104],"A bison can run as fast as a horse.",function(){return Q({c:"#7a5434",lc:"#3a2414",rx:52,ry:26,lw:8,n:'<ellipse cx="118" cy="82" rx="30" ry="24" fill="#3a2414"/>',p:'<ellipse cx="124" cy="98" rx="34" ry="28" fill="#3a2414"/>',h:'<ellipse cx="158" cy="108" rx="20" ry="22" fill="#3a2414"/><path d="M148 90Q138 82 146 74M168 92Q176 84 168 78" stroke="#d8cfa8" stroke-width="4" fill="none"/><ellipse cx="164" cy="124" rx="12" ry="8" fill="#241408"/>',e1:"#d9b060",ex:160,ey:104})});
+A("Llama",[160,36],"Llamas hum to each other.",function(){return Q({c:"#e8dcc4",s:"#cbbd9a",by:100,rx:40,ry:22,lw:6,n:'<path d="M124 90L146 44L162 48L142 104Z" fill="#e8dcc4" stroke="#cbbd9a"/><circle cx="136" cy="76" r="9" fill="#f4ecd8"/><circle cx="144" cy="60" r="8" fill="#f4ecd8"/>',p:sc(10,function(){return '<circle cx="'+(60+R()*70)+'" cy="'+(86+R()*26)+'" r="8" fill="#f4ecd8"/>'}),h:'<ellipse cx="158" cy="38" rx="14" ry="10" fill="#e8dcc4" stroke="#cbbd9a"/><ellipse cx="150" cy="24" rx="3" ry="11" fill="#e8dcc4"/><ellipse cx="162" cy="24" rx="3" ry="11" fill="#e8dcc4"/><ellipse cx="170" cy="42" rx="6" ry="5" fill="#cbbd9a"/>',ex:160,ey:36})});
+A("Polar Bear",[158,88],"A polar bear’s skin is black under its white fur.",function(){return Q({c:"#f2f5f7",s:"#b8c6d0",g:"#e4eef4",rx:52,ry:28,lw:14,h:'<circle cx="152" cy="92" r="20" fill="#f2f5f7" stroke="#b8c6d0"/><circle cx="140" cy="76" r="6" fill="#f2f5f7" stroke="#b8c6d0"/><circle cx="162" cy="76" r="6" fill="#f2f5f7" stroke="#b8c6d0"/><ellipse cx="168" cy="100" rx="12" ry="9" fill="#e4eaee"/><ellipse cx="174" cy="96" rx="4.5" ry="3.4" fill="#111"/>',e1:"#333",ex:158,ey:88})});
+A("Raccoon",[160,85],"Raccoons wash their food with their clever hands.",function(){return Q({c:"#8d8a86",t:'<path d="M44 100Q20 100 24 132" stroke="#8d8a86" stroke-width="11" fill="none"/><path d="M44 100Q20 100 24 132" stroke="#2a2a2a" stroke-width="11" fill="none" stroke-dasharray="5 7"/>',h:'<circle cx="156" cy="88" r="19" fill="#8d8a86"/><circle cx="144" cy="72" r="6" fill="#8d8a86"/><circle cx="168" cy="72" r="6" fill="#8d8a86"/><path d="M140 84Q156 76 172 84Q170 96 156 94Q142 96 140 84Z" fill="#222"/><ellipse cx="172" cy="96" rx="9" ry="7" fill="#e8e4dc"/><circle cx="178" cy="94" r="3" fill="#111"/>',er:3.2,ex:160,ey:85})});
+
+/* birds */
+A("Eagle",[142,73],"Eagles can spot a rabbit from over three kilometres away.",function(){return Bd({c:"#6a4a2a",w:"#4a3220",hc:"#f6f6f2",hx:138,hy:76,lc:"#f0c020",lw:5,t:'<path d="M68 110L40 126L44 112L40 100Z" fill="#f6f6f2"/>',n:'<path d="M118 96L134 80" stroke="#f6f6f2" stroke-width="18" stroke-linecap="round"/>',b:'<path d="M148 74Q166 74 162 90Q158 82 150 82Z" fill="#f0c020"/>'})});
+A("Chicken",[142,77],"A chicken can remember over a hundred faces.",function(){return Bd({c:"#f6f6f2",w:"#e0dccf",hx:138,hy:80,hr:14,lc:"#f08a1c",t:'<path d="M68 106L50 70L60 100L56 66L72 98Z" fill="#e0dccf"/>',n:'<path d="M118 100L134 86" stroke="#f6f6f2" stroke-width="16" stroke-linecap="round"/>',b:'<path d="M150 80L162 84L150 88Z" fill="#f08a1c"/><circle cx="132" cy="64" r="5" fill="#e63946"/><circle cx="140" cy="62" r="5" fill="#e63946"/><circle cx="146" cy="66" r="4" fill="#e63946"/><ellipse cx="148" cy="94" rx="4" ry="6" fill="#e63946"/>'})});
+A("Swan",[154,37],"Swans often stay with the same partner for life.",function(){return '<rect width="200" height="200" fill="#bfe3ef"/><rect y="120" width="200" height="80" fill="#5aa3b8"/><ellipse cx="96" cy="118" rx="44" ry="22" fill="#fff" stroke="#cfd8de"/><path d="M60 110Q40 90 52 80Q56 100 70 104Z" fill="#fff" stroke="#cfd8de"/><path d="M122 108Q152 106 144 70Q136 44 152 40" stroke="#fff" stroke-width="10" fill="none" stroke-linecap="round"/><circle cx="154" cy="38" r="9" fill="#fff" stroke="#cfd8de"/><path d="M160 36L176 42L160 44Z" fill="#f08a1c"/>'+eye(156,36,2.6,"#d9a21e","#111")+'<rect y="124" width="200" height="76" fill="#5aa3b8" opacity=".5"/>'});
+A("Toucan",[136,71],"A toucan’s big beak helps it stay cool.",function(){return Bd({c:"#16181d",lc:"#6a8fbf",hx:132,hy:74,hr:16,er:3.6,e1:"#6ab0e0",n:'<path d="M118 98L128 84" stroke="#16181d" stroke-width="20" stroke-linecap="round"/><ellipse cx="116" cy="104" rx="14" ry="16" fill="#f6f6f2"/>',b:'<path d="M142 66L196 74Q196 94 144 84Z" fill="#f08a1c"/><path d="M142 66L196 74L194 80L144 74Z" fill="#f2d04a"/><ellipse cx="190" cy="80" rx="6" ry="5" fill="#16181d"/>'})});
+A("Pelican",[142,67],"A pelican’s beak pouch can hold several litres of water.",function(){return Bd({c:"#f6f6f2",w:"#cfd6dd",lc:"#f08a1c",hx:138,hy:70,hr:14,n:'<path d="M118 94L132 78" stroke="#f6f6f2" stroke-width="16" stroke-linecap="round"/>',b:'<path d="M146 66L198 78L148 82Z" fill="#f0c040"/><path d="M148 82Q172 108 198 78Z" fill="#f4d890" stroke="#c9a24a"/>'})});
+A("Ostrich",[144,25],"An ostrich is the world’s biggest bird.",function(){return sky("#e0c88a")+shadow()+'<path d="M92 112L88 164M108 112L112 164" stroke="#e8a0a0" stroke-width="7" stroke-linecap="round"/><path d="M62 96L40 80L52 100L38 100L60 110Z" fill="#f6f6f2"/><ellipse cx="96" cy="96" rx="36" ry="28" fill="#1b1b20"/><ellipse cx="90" cy="92" rx="22" ry="14" fill="#f6f6f2" opacity=".35"/><path d="M122 84Q140 58 140 30" stroke="#e8a0a0" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="142" cy="26" r="9" fill="#e8a0a0"/><path d="M150 24L162 28L150 32Z" fill="#c98a8a"/>'+eye(145,24,3.6,"#6a4a2a","#111")});
+
+/* fish */
+A("Goldfish",[64,92],"A goldfish can learn to recognise its owner.",function(){return Fi({c:"#f08a1c",f:'<path d="M70 70Q100 34 130 72Z" fill="#f4a24a"/>',p:sc(20,function(k){return '<path d="M'+(60+(k%5)*18)+' '+(80+(k/5|0)*12)+'q5 6 10 0" stroke="#fbc070" stroke-width="2" fill="none"/>'})})});
+A("Clownfish",[64,92],"Clownfish live safely among sea anemones.",function(){return Fi({c:"#f2701c",f:'<path d="M70 70Q100 44 130 72Z" fill="#f2701c" stroke="#111" stroke-width="2"/>',p:'<rect x="80" y="60" width="14" height="80" fill="#fff" stroke="#111" stroke-width="3"/><rect x="122" y="60" width="12" height="80" fill="#fff" stroke="#111" stroke-width="3"/>'})});
+
+/* custom */
+A("Whale",[158,106],"Blue whales are the largest animals ever known.",function(){return W()+'<path d="M150 80Q150 52 130 40M150 80Q150 52 170 40" stroke="#dbeaf3" stroke-width="4" fill="none"/><path d="M14 124Q8 96 28 84Q26 104 40 112Z" fill="#41607a"/><path d="M14 124Q8 150 28 160Q26 140 40 132Z" fill="#41607a"/><path d="M20 128C40 90 120 82 180 100Q196 112 186 124Q150 150 80 148Q36 146 20 128Z" fill="#4f6d8a"/><path d="M40 134Q110 154 184 122Q150 144 80 144Z" fill="#b8cad8"/>'+sc(6,function(k){return '<path d="M'+(110+k*10)+' 138l0 8" stroke="#8aa4b8" stroke-width="1.4"/>'})+'<path d="M120 124Q150 122 176 112" stroke="#2a3540" stroke-width="1.6" fill="none"/>'+eye(158,106,3.4,"#333","#000")+'<path d="M100 140L90 160L120 144Z" fill="#41607a"/>'});
+A("Jellyfish",[100,70],"Jellyfish have no brain, heart or bones.",function(){return '<rect width="200" height="200" fill="#10305a"/>'+sc(8,function(k){return '<circle cx="'+(k*47%190+8)+'" cy="'+(k*61%190+6)+'" r="2.4" fill="#fff" opacity=".4"/>'})+sc(7,function(k){return '<path d="M'+(64+k*12)+' 100q'+(k%2?10:-10)+' 24 0 48t0 40" stroke="#f5a8d8" stroke-width="3" fill="none" opacity=".8"/>'})+'<path d="M48 104Q48 28 100 28Q152 28 152 104Q126 92 100 100Q74 92 48 104Z" fill="#f59ad2" opacity=".9"/><path d="M60 98Q60 46 100 42" stroke="#fff" stroke-width="3" fill="none" opacity=".5"/>'+sc(10,function(){return '<circle cx="'+(66+R()*68)+'" cy="'+(50+R()*30)+'" r="2.4" fill="#fff" opacity=".6"/>'})+eye(86,76,4,"#f2f2f2","#222")+eye(114,76,4,"#f2f2f2","#222")+'<path d="M92 90Q100 98 108 90" stroke="#a03a7a" stroke-width="2" fill="none"/>'});
+A("Starfish",[100,92],"A starfish can regrow a lost arm.",function(){var p="",k,r,a;for(k=0;k<10;k++){r=k%2?26:78;a=-Math.PI/2+k*Math.PI/5;p+=(100+r*Math.cos(a)).toFixed(1)+","+(100+r*Math.sin(a)).toFixed(1)+" "}return '<rect width="200" height="200" fill="#4ea3cc"/><rect y="120" width="200" height="80" fill="#e6d29a"/><polygon points="'+p+'" fill="#f08a3c" stroke="#c9601c" stroke-width="4" stroke-linejoin="round"/>'+sc(36,function(k){var a=-Math.PI/2+(k%5)*Math.PI*2/5,r=10+(k/5|0)*8;return '<circle cx="'+(100+r*Math.cos(a))+'" cy="'+(100+r*Math.sin(a))+'" r="2.2" fill="#f8c88a"/>'})+'<circle cx="100" cy="100" r="6" fill="#e0701c"/>'});
+A("Seahorse",[113,53],"Male seahorses carry the babies.",function(){return W()+sc(5,function(k){return '<circle cx="'+(30+k*34)+'" cy="'+(170-k*22)+'" r="'+(2+k%3)+'" fill="#fff" opacity=".5"/>'})+'<path d="M104 54Q130 56 126 80Q120 96 106 104Q94 122 106 140Q118 156 100 164" stroke="#f0b030" stroke-width="15" fill="none" stroke-linecap="round"/><path d="M100 164Q80 170 84 150Q88 144 94 150" stroke="#f0b030" stroke-width="9" fill="none" stroke-linecap="round"/>'+sc(6,function(k){return '<path d="M98 '+(86+k*10)+'l16 0" stroke="#c98a10" stroke-width="2"/>'})+'<path d="M126 80Q146 90 128 104Z" fill="#f8d070" opacity=".8"/><circle cx="112" cy="56" r="14" fill="#f0b030"/><path d="M120 58L152 64" stroke="#f0b030" stroke-width="7" stroke-linecap="round"/><circle cx="106" cy="40" r="3" fill="#f0b030"/><circle cx="113" cy="38" r="3" fill="#f0b030"/><circle cx="120" cy="40" r="3" fill="#f0b030"/>'+eye(114,53,4,"#f2f2f2","#222")});
+A("Bee",[146,104],"A bee visits thousands of flowers every day.",function(){return '<rect width="200" height="200" fill="#bfe8d0"/>'+sc(8,function(k){var a=k*Math.PI/4,x=100+44*Math.cos(a),y=110+44*Math.sin(a);return '<ellipse cx="'+x+'" cy="'+y+'" rx="18" ry="11" fill="#f59ac8" transform="rotate('+k*45+' '+x+' '+y+')"/>'})+'<circle cx="100" cy="110" r="22" fill="#f2c02a"/><ellipse cx="90" cy="72" rx="26" ry="13" fill="#e4f2ff" opacity=".85" transform="rotate(-20 90 72)"/><ellipse cx="116" cy="76" rx="22" ry="11" fill="#e4f2ff" opacity=".85" transform="rotate(14 116 76)"/>'+clip('<ellipse cx="102" cy="108" rx="38" ry="25"/>','<rect width="200" height="200" fill="#f2c02a"/>'+sc(4,function(k){return '<rect x="'+(78+k*16)+'" y="70" width="8" height="80" fill="#1b1308"/>'}))+'<circle cx="144" cy="104" r="16" fill="#1b1308"/><path d="M140 90Q136 76 128 74M148 90Q152 76 160 74" stroke="#1b1308" stroke-width="2.4" fill="none"/><path d="M62 108L50 112L62 116Z" fill="#1b1308"/>'+eye(148,100,4.4,"#e6c84a","#111")+eye(138,102,3.4,"#e6c84a","#111")});
+A("Ladybug",[100,112],"A ladybug can eat thousands of tiny pests.",function(){return '<rect width="200" height="200" fill="#8fc05a"/><path d="M-10 200Q60 100 210 150L210 200Z" fill="#6aa04a"/><circle cx="100" cy="116" r="54" fill="#e63946"/>'+clip('<circle cx="100" cy="116" r="54"/>',sc(9,function(k){return '<circle cx="'+(60+(k%3)*40)+'" cy="'+(86+(k/3|0)*32)+'" r="'+(7+R()*3)+'" fill="#161616"/>'})+'<rect x="98" y="60" width="4" height="120" fill="#161616"/>')+'<path d="M56 74Q100 38 144 74Q100 62 56 74Z" fill="#161616"/><circle cx="84" cy="66" r="4" fill="#fff"/><circle cx="116" cy="66" r="4" fill="#fff"/><path d="M86 56Q80 40 70 38M114 56Q120 40 130 38" stroke="#161616" stroke-width="2" fill="none"/>'});
+A("Spider",[100,76],"Most spiders have eight eyes.",function(){var L="",k;for(k=0;k<4;k++)L+='<path d="M92 '+(100+k*6)+'Q'+(50-k*6)+' '+(70+k*14)+' '+(22+k*4)+' '+(120+k*18)+'M108 '+(100+k*6)+'Q'+(150+k*6)+' '+(70+k*14)+' '+(178-k*4)+' '+(120+k*18)+'" stroke="#1b1b1b" stroke-width="3.5" fill="none" stroke-linecap="round"/>';return '<rect width="200" height="200" fill="#c9ced6"/>'+sc(8,function(k){var a=k*Math.PI/4;return '<path d="M100 100L'+(100+130*Math.cos(a))+' '+(100+130*Math.sin(a))+'" stroke="#fff" stroke-width="1" opacity=".6"/>'})+sc(4,function(k){return '<circle cx="100" cy="100" r="'+(30+k*26)+'" fill="none" stroke="#fff" stroke-width="1" opacity=".5"/>'})+L+'<ellipse cx="100" cy="116" rx="24" ry="28" fill="#1b1b1b"/><circle cx="100" cy="80" r="15" fill="#2a2a2a"/>'+eye(93,76,4,"#d22","#000")+eye(107,76,4,"#d22","#000")+'<circle cx="96" cy="86" r="2" fill="#d22"/><circle cx="104" cy="86" r="2" fill="#d22"/><path d="M94 106L106 106L100 116L106 126L94 126L100 116Z" fill="#d22"/>'});
+A("Snake",[180,117],"Snakes smell with their tongues.",function(){return sky("#c9b36a")+'<path d="M14 150Q50 90 90 140T170 130" stroke="#3f7a2a" stroke-width="18" fill="none" stroke-linecap="round"/><path d="M14 150Q50 90 90 140T170 130" stroke="#a8d060" stroke-width="8" fill="none" stroke-dasharray="3 9" stroke-linecap="round"/><ellipse cx="180" cy="122" rx="16" ry="11" fill="#3f7a2a" transform="rotate(-30 180 122)"/><path d="M194 112L204 106M194 112L204 116" stroke="#e63946" stroke-width="2"/>'+eye(180,116,3.6,"#e6c84a","#111",1)});
+A("Chameleon",[152,88],"A chameleon’s eyes can look in two directions at once.",function(){var g="#5fae38";return '<rect width="200" height="200" fill="#bfe8d0"/><rect x="10" y="132" width="180" height="9" rx="4" fill="#6a4a2a"/><path d="M62 108Q26 112 34 140Q50 158 64 142Q68 128 54 128" stroke="'+g+'" stroke-width="9" fill="none" stroke-linecap="round"/><ellipse cx="100" cy="106" rx="40" ry="26" fill="'+g+'"/>'+sc(10,function(){return '<circle cx="'+(66+R()*68)+'" cy="'+(92+R()*28)+'" r="'+(3+R()*3)+'" fill="'+(R()>.5?"#e8c030":"#3a8a60")+'"/>'})+'<path d="M82 128L80 138M118 128L120 138" stroke="'+g+'" stroke-width="8" stroke-linecap="round"/><ellipse cx="144" cy="92" rx="24" ry="19" fill="'+g+'"/><path d="M128 76Q140 56 160 70Z" fill="#4a9a2c"/><circle cx="152" cy="88" r="11" fill="#4a9a2c" stroke="#2a5c14" stroke-width="2"/>'+eye(152,88,7,"#e8c030","#2a1a05")+'<path d="M160 100Q172 100 166 96" stroke="#2a5c14" stroke-width="2" fill="none"/>'});
+A("Kangaroo",[128,50],"A kangaroo can hop at about 60 km/h.",function(){var c="#c98f56";return sky("#d8b878")+shadow()+'<path d="M82 130Q40 150 16 160" stroke="'+c+'" stroke-width="13" fill="none" stroke-linecap="round"/><ellipse cx="108" cy="100" rx="26" ry="40" fill="'+c+'" transform="rotate(-8 108 100)"/><ellipse cx="112" cy="106" rx="14" ry="28" fill="#ecd2a8"/><ellipse cx="98" cy="140" rx="24" ry="16" fill="'+c+'"/><path d="M82 152L134 156L134 164L72 164Z" fill="#a8703c"/><path d="M122 86L136 96" stroke="'+c+'" stroke-width="7" stroke-linecap="round"/><ellipse cx="124" cy="54" rx="12" ry="16" fill="'+c+'"/><ellipse cx="136" cy="68" rx="9" ry="6" fill="'+c+'" transform="rotate(20 136 68)"/><ellipse cx="116" cy="34" rx="4" ry="13" fill="'+c+'"/><ellipse cx="128" cy="34" rx="4" ry="13" fill="'+c+'"/><circle cx="142" cy="68" r="3" fill="#2a1a10"/>'+eye(128,50,3.4,"#5a3a1c","#111")});
+A("Koala",[100,76],"Koalas sleep for about 20 hours a day.",function(){return '<rect width="200" height="200" fill="#bfe8d0"/><rect y="128" width="200" height="12" fill="#6a4a2a"/><ellipse cx="30" cy="110" rx="22" ry="9" fill="#4a9a4a" transform="rotate(-20 30 110)"/><ellipse cx="170" cy="112" rx="22" ry="9" fill="#4a9a4a" transform="rotate(20 170 112)"/><ellipse cx="100" cy="116" rx="36" ry="38" fill="#9a9ca6"/><ellipse cx="100" cy="124" rx="22" ry="26" fill="#d8d9de"/><ellipse cx="66" cy="134" rx="10" ry="18" fill="#8a8c96"/><ellipse cx="134" cy="134" rx="10" ry="18" fill="#8a8c96"/><circle cx="100" cy="68" r="28" fill="#9a9ca6"/><circle cx="72" cy="52" r="17" fill="#9a9ca6"/><circle cx="128" cy="52" r="17" fill="#9a9ca6"/><circle cx="72" cy="52" r="9" fill="#e8e8ec"/><circle cx="128" cy="52" r="9" fill="#e8e8ec"/><ellipse cx="100" cy="78" rx="9" ry="12" fill="#1c1c20"/><path d="M92 92Q100 98 108 92" stroke="#444" stroke-width="2" fill="none"/>'+eye(88,64,3.6,"#5a3a1c","#111")+eye(112,64,3.6,"#5a3a1c","#111")});
+A("Monkey",[91,64],"Monkeys use their tails like an extra hand.",function(){var c="#8a5a2c";return '<rect width="200" height="200" fill="#bfe8d0"/><rect y="156" width="200" height="12" fill="#6a4a2a"/><path d="M126 140Q172 150 164 100Q160 80 176 74" stroke="'+c+'" stroke-width="6" fill="none" stroke-linecap="round"/><ellipse cx="100" cy="118" rx="30" ry="36" fill="'+c+'"/><ellipse cx="100" cy="124" rx="18" ry="24" fill="#d8b080"/><ellipse cx="78" cy="152" rx="14" ry="8" fill="'+c+'"/><ellipse cx="122" cy="152" rx="14" ry="8" fill="'+c+'"/><path d="M76 104L64 136M124 104L136 136" stroke="'+c+'" stroke-width="9" stroke-linecap="round"/><circle cx="100" cy="66" r="26" fill="'+c+'"/><circle cx="72" cy="66" r="9" fill="#e0b888"/><circle cx="128" cy="66" r="9" fill="#e0b888"/><ellipse cx="100" cy="72" rx="19" ry="17" fill="#e0b888"/><path d="M92 80Q100 86 108 80" stroke="#6a3a1c" stroke-width="2" fill="none"/><circle cx="96" cy="76" r="1.4" fill="#6a3a1c"/><circle cx="104" cy="76" r="1.4" fill="#6a3a1c"/>'+eye(91,64,3.4,"#5a3a1c","#111")+eye(109,64,3.4,"#5a3a1c","#111")});
+A("Gorilla",[92,63],"Gorillas live in family groups led by a silverback.",function(){var c="#3a3d42";return '<rect width="200" height="200" fill="#9bc88a"/><rect y="162" width="200" height="38" fill="#6aa04a"/><ellipse cx="100" cy="164" rx="60" ry="5" fill="#000" opacity=".25"/><ellipse cx="60" cy="130" rx="18" ry="40" fill="'+c+'" transform="rotate(10 60 130)"/><ellipse cx="140" cy="130" rx="18" ry="40" fill="'+c+'" transform="rotate(-10 140 130)"/><ellipse cx="100" cy="122" rx="46" ry="42" fill="'+c+'"/><ellipse cx="100" cy="124" rx="28" ry="26" fill="#52565e"/><ellipse cx="52" cy="160" rx="16" ry="9" fill="#2a2c30"/><ellipse cx="148" cy="160" rx="16" ry="9" fill="#2a2c30"/><ellipse cx="100" cy="62" rx="26" ry="24" fill="'+c+'"/><ellipse cx="100" cy="46" rx="18" ry="10" fill="#2a2c30"/><ellipse cx="100" cy="72" rx="16" ry="14" fill="#5a5e66"/><ellipse cx="94" cy="76" rx="2" ry="2.6" fill="#111"/><ellipse cx="106" cy="76" rx="2" ry="2.6" fill="#111"/><path d="M92 84Q100 88 108 84" stroke="#111" stroke-width="2" fill="none"/>'+eye(91,62,3,"#6a4a2a","#111")+eye(109,62,3,"#6a4a2a","#111")});
+A("Hedgehog",[150,118],"A hedgehog can have around 5,000 spines.",function(){return sky("#9bbd5a")+shadow()+'<ellipse cx="100" cy="124" rx="50" ry="32" fill="#6a4a2a"/>'+sc(60,function(k){var a=Math.PI*(1+k/59),x=100+50*Math.cos(a),y=124+33*Math.sin(a),b=a+(R()-.5)*.6;return '<path d="M'+x.toFixed(1)+' '+y.toFixed(1)+'L'+(x+11*Math.cos(b)).toFixed(1)+' '+(y+11*Math.sin(b)).toFixed(1)+'" stroke="'+(k%3?"#3a2814":"#9a7a4a")+'" stroke-width="3"/>'})+'<ellipse cx="100" cy="126" rx="46" ry="26" fill="#7a5a36"/><ellipse cx="148" cy="126" rx="24" ry="15" fill="#e0c8a0"/><circle cx="170" cy="126" r="4" fill="#111"/><ellipse cx="138" cy="112" rx="6" ry="5" fill="#e0c8a0"/><ellipse cx="86" cy="156" rx="9" ry="5" fill="#e0c8a0"/><ellipse cx="124" cy="156" rx="9" ry="5" fill="#e0c8a0"/>'+eye(150,118,3.4,"#2a1a10","#000")});
+A("Mouse",[142,112],"A mouse’s whiskers help it feel its way in the dark.",function(){return '<rect width="200" height="200" fill="#e8d8b8"/><rect y="150" width="200" height="50" fill="#c9b08a"/><path d="M150 150L190 150L190 126Z" fill="#f2c030"/><circle cx="178" cy="144" r="3" fill="#d9a020"/><circle cx="168" cy="146" r="2" fill="#d9a020"/><path d="M62 134Q30 134 28 110Q26 90 44 88" stroke="#e8b0b0" stroke-width="3" fill="none"/><ellipse cx="100" cy="130" rx="38" ry="26" fill="#a8a8b0"/><ellipse cx="108" cy="140" rx="24" ry="14" fill="#d8d8de"/><ellipse cx="140" cy="118" rx="22" ry="16" fill="#a8a8b0"/><circle cx="126" cy="98" r="13" fill="#a8a8b0"/><circle cx="126" cy="98" r="8" fill="#f2b8b8"/><circle cx="160" cy="120" r="3.4" fill="#e58a8a"/><path d="M156 124L180 128M156 120L182 116M156 122L178 138" stroke="#555" stroke-width="1"/><ellipse cx="84" cy="154" rx="9" ry="5" fill="#e8b0b0"/><ellipse cx="120" cy="154" rx="9" ry="5" fill="#e8b0b0"/>'+eye(146,112,3.6,"#2a1a10","#000")});
+A("Bat",[100,75],"Bats are the only mammals that truly fly.",function(){var w='<path d="M104 94L192 58Q182 88 172 86Q166 108 150 100Q144 120 130 112Q116 118 104 112Z" fill="#4a3a6a" stroke="#2a2040" stroke-width="2"/><path d="M104 96L172 70M106 100L160 90M108 106L146 104" stroke="#2a2040" stroke-width="1.6" fill="none"/>';return '<rect width="200" height="200" fill="#1a1840"/><circle cx="40" cy="40" r="22" fill="#f3efd0"/>'+sc(10,function(k){return '<circle cx="'+(k*43%190+6)+'" cy="'+(k*29%120+6)+'" r="1.4" fill="#fff"/>'})+w+'<g transform="translate(200 0) scale(-1 1)">'+w+'</g><ellipse cx="100" cy="102" rx="12" ry="20" fill="#2a2040"/><circle cx="100" cy="76" r="12" fill="#2a2040"/><path d="M90 70L88 52L98 64Z M110 70L112 52L102 64Z" fill="#2a2040"/>'+eye(95,75,3,"#f2d04a","#111")+eye(105,75,3,"#f2d04a","#111")+'<path d="M96 82L98 86L100 82L102 86L104 82" stroke="#fff" stroke-width="1.4" fill="none"/>'});
+A("Squirrel",[122,76],"Squirrels forget where they bury many of their nuts.",function(){var c="#b8663a";return sky("#8fb257")+shadow()+'<path d="M80 150Q30 140 40 90Q50 40 84 60Q60 90 84 120Z" fill="'+c+'"/><path d="M80 150Q36 138 44 92Q52 52 78 62" stroke="#e8a070" stroke-width="3" fill="none"/><ellipse cx="102" cy="124" rx="26" ry="34" fill="'+c+'"/><ellipse cx="110" cy="130" rx="14" ry="22" fill="#f1dcc0"/><ellipse cx="96" cy="160" rx="22" ry="7" fill="'+c+'"/><circle cx="116" cy="80" r="20" fill="'+c+'"/><path d="M106 66L102 46L116 62Z M120 62L130 46L132 68Z" fill="'+c+'"/><ellipse cx="132" cy="88" rx="8" ry="6" fill="#f1dcc0"/><circle cx="138" cy="86" r="2.6" fill="#111"/><ellipse cx="124" cy="112" rx="8" ry="6" fill="#7a4a2a"/>'+eye(122,76,3.4,"#2a1a10","#000")});
+A("Sloth",[88,93],"A sloth moves so slowly that algae grows on its fur.",function(){var c="#a89a82";return '<rect width="200" height="200" fill="#bfe8d0"/><rect y="30" width="200" height="12" fill="#6a4a2a"/><ellipse cx="170" cy="50" rx="22" ry="9" fill="#4a9a4a"/><path d="M76 108L56 46M124 108L146 46" stroke="'+c+'" stroke-width="13" stroke-linecap="round"/><path d="M52 42l-4 -8M58 42l0 -9M144 42l0 -9M150 42l4 -8" stroke="#e8e0c8" stroke-width="2.4"/><ellipse cx="100" cy="128" rx="32" ry="40" fill="'+c+'"/><ellipse cx="100" cy="98" rx="26" ry="22" fill="#d8ccb4"/><ellipse cx="86" cy="94" rx="9" ry="6" fill="#4a3a2a" transform="rotate(25 86 94)"/><ellipse cx="114" cy="94" rx="9" ry="6" fill="#4a3a2a" transform="rotate(-25 114 94)"/><ellipse cx="100" cy="106" rx="6" ry="4" fill="#2a2018"/><path d="M92 114Q100 120 108 114" stroke="#4a3a2a" stroke-width="2" fill="none"/>'+eye(87,93,3,"#d8ccb4","#000")+eye(113,93,3,"#d8ccb4","#000")});
+A("Seal",[176,100],"Seals can hold their breath for over 30 minutes.",function(){return '<rect width="200" height="200" fill="#bfe3f2"/><rect y="150" width="200" height="50" fill="#5aa3b8"/><path d="M30 150Q50 126 110 120L190 150Z" fill="#e8f4fa"/><path d="M20 140Q40 100 100 104Q160 100 186 124Q170 146 120 150Q60 156 20 140Z" fill="#8a96a2"/>'+sc(16,function(){return '<circle cx="'+(40+R()*110)+'" cy="'+(112+R()*28)+'" r="'+(2+R()*2)+'" fill="#4a5560"/>'})+'<path d="M20 140L4 126L10 148Z" fill="#6a7682"/><path d="M110 134L100 156L126 140Z" fill="#6a7682"/><circle cx="172" cy="106" r="18" fill="#8a96a2"/><ellipse cx="184" cy="114" rx="8" ry="6" fill="#aab4be"/><circle cx="190" cy="112" r="3.4" fill="#111"/><path d="M184 118L206 114M184 120L204 124" stroke="#fff" stroke-width="1"/>'+eye(176,100,5,"#2a2a30","#000")});
+ALIAS["Polar Bear"]=["polarbear","white bear"];ALIAS.Goldfish=["fish","gold fish"];ALIAS.Clownfish=["clown fish","nemo"];ALIAS.Chicken=["hen","rooster"];ALIAS.Dog=["puppy"];ALIAS.Cat=["kitten","kitty"];ALIAS.Monkey=["chimp","chimpanzee"];ALIAS.Eagle=["bald eagle"];ALIAS.Whale=["blue whale"];ALIAS.Ladybug=["ladybird","lady bug"];ALIAS.Starfish=["sea star","star fish"];ALIAS.Seahorse=["sea horse"];ALIAS.Kangaroo=["roo"];ALIAS.Deer=["stag","reindeer"];ALIAS.Rhino=["rhinoceros"];ALIAS.Llama=["alpaca"];ALIAS.Hedgehog=["hedge hog"];ALIAS.Mouse=["mice"];ALIAS.Bison=["buffalo"];ALIAS.Wolf=["grey wolf"];
+S.slice(30).forEach(function(a){var f=a.s;a.s=function(){if(Math.random()<.5){F[0]=200-F[0];return '<g transform="translate(200 0) scale(-1 1)">'+f()+'</g>'}return f()}});
+/* ---- Level-unlock rewards ---- */
+SHOP.hat[1].push(["tophat","Top hat",0,null,12],["viking","Viking",0,null,40]);
+SHOP.hair[1].push(["mohawk","Mohawk",0,null,30]);
+SHOP.hcol[1].push(["green","Green",0,"#3fb950",20],["purple","Purple",0,"#a855f7",45]);
+SHOP.glasses[1].push(["heart","Hearts",0,null,25]);
+SHOP.skin[1].push(["alien","Alien",0,"#8fe08a",35]);
+SHOP.pet=["Pets",[["none","No pet",0],["dog","Puppy",0,"🐶",15],["cat","Kitten",0,"🐱",25],["parrot","Parrot",0,"🦜",40],["dragon","Dragon",0,"🐉",80],["unicorn","Unicorn",0,"🦄",120]]];
+HATS.tophat='<ellipse cx="80" cy="58" rx="40" ry="7" fill="#1b1b22"/><rect x="56" y="14" width="48" height="44" fill="#1b1b22"/><rect x="56" y="44" width="48" height="8" fill="#c1121f"/>';
+HATS.viking='<path d="M48 66Q48 36 80 36Q112 36 112 66Z" fill="#8a93a0"/><path d="M48 66H112" stroke="#6a727e" stroke-width="4"/><path d="M50 50Q34 44 36 24Q46 34 52 40Z" fill="#f4efe2"/><path d="M110 50Q126 44 124 24Q114 34 108 40Z" fill="#f4efe2"/>';
+GL.heart='<path d="M68 98C54 90 56 80 64 80C67 80 68 83 68 83C68 83 69 80 72 80C80 80 82 90 68 98Z" fill="#ff4d79" stroke="#b01e48" stroke-width="1.5"/><path d="M92 98C78 90 80 80 88 80C91 80 92 83 92 83C92 83 93 80 96 80C104 80 106 90 92 98Z" fill="#ff4d79" stroke="#b01e48" stroke-width="1.5"/>';
+VB.pet="0 110 160 90";
+var oldAv=avatar;avatar=function(c,p,vb){
+  var m=c.hair==="mohawk",s=oldAv(m?Object.assign({},c,{hair:"none"}):c,p,vb),pe=c.pet&&c.pet!=="none"?col("pet",c.pet):"";
+  if(m)s=s.replace('<circle cx="62" cy="104"','<path d="M70 66L72 34L78 54L80 26L84 52L90 34L90 66Z" fill="'+col("hcol",c.hcol)+'"/><circle cx="62" cy="104"');
+  if(pe)s=s.replace("</svg>",'<text x="6" y="192" font-size="38">'+pe+'</text></svg>');
+  return s};
+function avail(cat,r){return r[4]?(AV.done||0)>=r[4]:(r[2]===0||!!AV.owned[cat+":"+r[0]])}
+renderShop=function(){
+  $("shopCoins").textContent="🪙 "+AV.coins+" · ✅ "+(AV.done||0)+" levels cleared";
+  $("shopAv").innerHTML=avatar(AV.eq,"m");$("shopName").textContent=AV.name+" the "+TITLE[AV.eq.cos];
+  var t=$("tabs"),box=$("items");t.innerHTML="";box.innerHTML="";
+  Object.keys(SHOP).forEach(function(k){var b=document.createElement("button");b.className="tab"+(k===tabKey?" on":"");b.textContent=SHOP[k][0];b.onclick=function(){tabKey=k;$("shopMsg").textContent="";renderShop()};t.appendChild(b)});
+  SHOP[tabKey][1].forEach(function(r,n){
+    var ok=avail(tabKey,r),on=AV.eq[tabKey]===r[0],o={},q;for(q in AV.eq)o[q]=AV.eq[q];o[tabKey]=r[0];
+    var lab=on?"Equipped":ok?(r[4]?"Unlocked":r[2]?"Owned":"Free"):r[4]?"🔒 Clear "+r[4]+" levels ("+Math.min(AV.done||0,r[4])+"/"+r[4]+")":"🪙 "+r[2];
+    var b=document.createElement("button");b.className="item"+(on?" eq":"")+(ok?"":" lock");
+    b.innerHTML=avatar(o,"t"+n,VB[tabKey])+"<b>"+r[1]+"</b><br>"+lab;b.onclick=function(){pick(r)};box.appendChild(b)});
+  var m=$("shopMsg");if(["hat","glasses","shirt"].indexOf(tabKey)>-1&&AV.eq.cos!=="tee"&&!m.textContent)m.textContent="Hats, glasses and T-shirts show on the Starter outfit."};
+pick=function(r){
+  var k=tabKey+":"+r[0],m=$("shopMsg");
+  if(!avail(tabKey,r)){
+    if(r[4]){m.textContent="Locked. Clear "+(r[4]-(AV.done||0))+" more levels to unlock "+r[1]+".";tone(150,.25,"sawtooth");return}
+    if(AV.coins<r[2]){m.textContent="Not enough coins. You need "+(r[2]-AV.coins)+" more. Play a game to earn some!";tone(150,.25,"sawtooth");return}
+    AV.coins-=r[2];AV.owned[k]=true;m.textContent="You bought "+r[1]+"!";tone(660,.12);setTimeout(function(){tone(880,.2)},110)
+  }else m.textContent="";
+  AV.eq[tabKey]=r[0];saveAV();updCoins();renderShop()};
+var oldOS=openShop;openShop=function(f){oldOS(f);$("nameIn").value=AV.name};
+$("shopTop").onclick=function(){openShop($("end").classList.contains("hide")?"game":"end")};
+$("shopBack").onclick=function(){$("shop").classList.add("hide");
+  if(shopFrom==="end"){$("end").classList.remove("hide");$("endAv").innerHTML=avatar(AV.eq,"e","10 20 140 150")}
+  else{$("play").classList.remove("hide");if(shopFrom==="intro"){$("intro").className="ov";updIntro()}}};
+$("nameSave").onclick=function(){var n=$("nameIn").value.trim().slice(0,12);if(!n)return;AV.name=n;saveAV();renderShop();updIntro();$("shopMsg").textContent="Name changed to "+n+"."};
+$("nameIn").addEventListener("keydown",function(e){if(e.key==="Enter")$("nameSave").onclick()});
+
+/* ---- Saved progress ---- */
+var unl="";
+function runOf(n){return{d:deck.slice(0,ROUNDS).map(function(x){return x.k}),i:n,score:score,streak:streak}}
+function updIntro(){
+  $("introWho").textContent="Playing as "+AV.name+" · Best: "+AV.best+" pts · Levels cleared: "+(AV.done||0);
+  $("introAv").innerHTML=avatar(AV.eq,"i","10 20 140 150");
+  var r=AV.run;$("contBtn").className="main-btn"+(r?"":" hide");
+  if(r)$("contBtn").textContent="▶ Continue: Level "+Math.min(r.i+1,ROUNDS)+" of "+ROUNDS+" ("+r.score+" pts)";
+  $("playBtn").textContent=r?"New game":"Play"}
+function resume(){
+  var r=AV.run;deck=r.d.map(function(k){return{a:S[k],k:k}});i=r.i;score=r.score;streak=r.streak||0;playing=true;
+  $("intro").className="ov hide";$("end").classList.add("hide");$("play").classList.remove("hide");
+  if(i>=ROUNDS)end();else round()}
+var oldRound5=round;round=function(){oldRound5();unl="";if(playing){AV.run=runOf(i);saveAV()}};
+var oldFinish3=finish;finish=function(){oldFinish3();
+  if(won>0){AV.done=(AV.done||0)+1;var n=[];Object.keys(SHOP).forEach(function(k){SHOP[k][1].forEach(function(r){if(r[4]&&r[4]===AV.done)n.push(r[1])})});unl=n.join(", ")}
+  AV.run=runOf(i+1);saveAV()};
+var oldSR=showResult;showResult=function(){oldSR();if(unl)$("ovFact").textContent="🎁 New avatar item unlocked: "+unl+"! Open the 🛍️ shop to wear it."};
+var oldEnd2=end;end=function(){oldEnd2();AV.run=null;saveAV();updIntro()};
+$("contBtn").onclick=resume;
+$("playBtn").onclick=function(){$("intro").className="ov hide";playing=true;start()};
+updIntro();
+var fullHit=false;
+var oldWorth=worth;worth=function(){oldWorth();$("zoomBtn").textContent=level===2?"Zoom out (−1 go)":"Zoom out";
+  if(!answered&&level>=3&&!fullHit){fullHit=true;tries++;goes();shake();tone(150,.28,"sawtooth");buzz([40,40,40]);var left=MAXG-tries;
+    if(left<=0){$("msg").textContent="Fully zoomed out and no goes left. It was a "+deck[i].a.n+".";won=0;finish()}
+    else $("msg").textContent="Fully zoomed out! You lost a go. "+left+(left===1?" go":" goes")+" left."}};
+var oldRound4=round;round=function(){oldRound4();fullHit=false};
+$("again").onclick=start;
+start();
+</script>
+</body>
+</html>
