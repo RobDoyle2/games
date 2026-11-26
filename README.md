@@ -11,6 +11,9 @@ A collection of small browser games. Each game lives in its own folder with its 
 ## Adding a game
 Make a new folder with an `index.html`, add a card for it on the front page (`index.html` in the main folder, there's a comment showing how), use relative paths, and give its saved data (localStorage) its own prefix so games don't overwrite each other. Spider Takedown uses `st_`.
 
+## Version numbers
+Build a Home shows its version in the top right corner. It started at v0.01, and goes up by 0.01 for each release pushed to GitHub. Change the number in `build-a-home/index.html` (look for `class="ver"`) when you push a release.
+
 ## Playing on GitHub Pages
 The front page (`index.html`) is the colourful game picker for kids; this README is just notes for grown-ups.
 
