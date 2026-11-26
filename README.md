@@ -15,3 +15,6 @@ Make a new folder with an `index.html`, add a card for it on the front page (`in
 The front page (`index.html`) is the colourful game picker for kids; this README is just notes for grown-ups.
 
 Turn on Pages for the `main` branch (Settings → Pages), then open `https://robdoyle2.github.io/games/spider-takedown/`.
+
+## Version numbers
+Spot the Difference shows its version in the top right corner. It started at v0.01 and goes up by 0.01 for every release pushed to GitHub (v0.02 next). To bump it, change the text in the `<div class="ver">` near the top of `spot-the-difference/index.html`.

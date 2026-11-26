@@ -18,7 +18,8 @@
 :root[data-theme="dark"]{--bg:#241b3d; --ink:#fff1c9; --card:#3a2d5c; --accent:#ff8a6b; --good:#4fe08f; --dot:#4d3f77; --shadow:#17102b;}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%}
-body{background:var(--bg);color:var(--ink);font-family:"Fredoka","Comic Sans MS","Trebuchet MS",system-ui,sans-serif;text-align:center;padding:16px 14px 28px}
+body{position:relative;background:var(--bg);color:var(--ink);font-family:"Fredoka","Comic Sans MS","Trebuchet MS",system-ui,sans-serif;text-align:center;padding:16px 14px 28px}
+.ver{position:absolute;top:calc(6px + env(safe-area-inset-top,0px));right:12px;font-size:13px;font-weight:700;opacity:.65;letter-spacing:.3px}
 h1{font-size:clamp(26px,5vw,40px);margin:4px 0 2px;font-weight:700}
 .sub{margin:0 0 14px;font-size:clamp(16px,2.6vw,20px);opacity:.85}
 .tags{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:0 0 12px}
@@ -51,6 +52,8 @@ button:focus-visible{outline:4px solid var(--ink);outline-offset:3px}
 </style>
 </head>
 <body>
+<!-- Version: add 0.01 here for every release pushed to GitHub (v0.01 = first push with a version number) -->
+<div class="ver" id="ver" title="Version">v0.01</div>
 <h1>Spot the Difference!</h1>
 <p class="sub">Tap the spots where the two pictures don’t match.</p>
 <div class="tags" id="tags"></div>
