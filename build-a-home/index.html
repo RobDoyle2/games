@@ -26,7 +26,8 @@ button{font:inherit;color:inherit}
 #app{height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column}
 
 /* header */
-header{flex:none;padding:12px 16px 8px;color:#fff}
+header{position:relative;flex:none;padding:18px 16px 8px;color:#fff}
+.ver{position:absolute;top:4px;right:16px;font-size:11px;font-weight:800;letter-spacing:.04em;color:#8ea6c6;font-variant-numeric:tabular-nums}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{font-family:var(--display);font-size:25px;line-height:1;color:var(--sun);text-shadow:0 2px 0 rgba(0,0,0,.4)}
 .purse{position:relative;display:flex;align-items:center;gap:8px;background:#0c1829;border:2px solid var(--line);border-radius:999px;padding:4px 14px 4px 5px;font-family:var(--display);font-size:24px;color:#fff;font-variant-numeric:tabular-nums}
@@ -246,6 +247,8 @@ nav{flex:none;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:1
 <body>
 <div id="app">
   <header>
+    <!-- Version: add 0.01 here for each release pushed to GitHub. -->
+    <div class="ver" id="ver">v0.01</div>
     <div class="top">
       <div class="brand">Build a Home</div>
       <div class="purse" id="purse" aria-live="polite"><span id="coinicon"></span><span id="coins">50</span></div>
